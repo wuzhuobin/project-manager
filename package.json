@@ -1,0 +1,28 @@
+{
+  "name": "project-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "ncc build lib/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuzhuobin/project-manager.git"
+  },
+  "keywords": [],
+  "author": "wuzhuobin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wuzhuobin/project-manager/issues"
+  },
+  "homepage": "https://github.com/wuzhuobin/project-manager#README.md",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.33.1"
+  }
+}
