@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "ncc build lib/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "jest": "jest",
+    "test": "npm run jest"
   },
   "repository": {
     "type": "git",
@@ -20,9 +21,11 @@
   "homepage": "https://github.com/wuzhuobin/project-manager#README.md",
   "dependencies": {
     "@actions/core": "^1.6.0",
-    "@actions/github": "^5.0.0"
+    "@actions/github": "^5.0.0",
+    "axios": "^0.25.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.33.1"
+    "@vercel/ncc": "^0.33.1",
+    "jest": "^27.4.7"
   }
 }
