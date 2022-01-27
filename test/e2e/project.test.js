@@ -18,7 +18,20 @@ describe("e2e", () => {
 
     test("getProjectFieldName", async () => {
       const names = await project.getProjectFieldName(organization, number);
-      console.log(names);
+      expect(names).toEqual([
+        "Title",
+        "Assignees",
+        "Status",
+        "Labels",
+        "Repository",
+        "Milestone",
+        "Priority",
+        "Story Point",
+        "Comment",
+        "Sprint",
+        "Linked Pull Requests",
+        "Reviewers",
+      ]);
     });
   });
 });
