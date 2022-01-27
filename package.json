@@ -6,7 +6,10 @@
   "scripts": {
     "build": "ncc build lib/index.js",
     "jest": "jest",
-    "test": "npm run jest"
+    "test": "npm run jest",
+    "eslint": "eslint",
+    "lint": "npm run eslint lib test",
+    "lint:fix": "npm run eslint -- --fix lib test"
   },
   "repository": {
     "type": "git",
@@ -26,6 +29,11 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.33.1",
-    "jest": "^27.4.7"
+    "eslint": "^8.7.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^26.0.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^27.4.7",
+    "prettier": "^2.5.1"
   }
 }
