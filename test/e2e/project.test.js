@@ -33,5 +33,12 @@ describe("e2e", () => {
         "Reviewers",
       ]);
     });
+
+	test("getProjectItemCount", async () => {
+		const count = await project.getProjectItemCount(organization, number);
+		expect(count).toBe(104);
+	})
+
+
   });
 });
