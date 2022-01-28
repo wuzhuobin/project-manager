@@ -1,7 +1,7 @@
 const Project = require("../../lib/project");
 
 describe("e2e", () => {
-  describe("project", () => {
+  describe("Project", () => {
     const organization = "philips-internal";
     const number = 93;
     const project = new Project(organization, number, TOKEN);
@@ -18,7 +18,7 @@ describe("e2e", () => {
 
     test("getProjectFields", async () => {
       const fields = await project.getProjectFields();
-      console.log(fields);
+      expect(fields.length).toBe(12);
     });
 
     test("getProjectItemCount", async () => {
@@ -27,7 +27,6 @@ describe("e2e", () => {
     });
 
     test("getProjectItems", async () => {
-      jest.setTimeout(10000);
       const items = await project.getProjectItems();
       expect(items.length).toEqual(104);
     });
