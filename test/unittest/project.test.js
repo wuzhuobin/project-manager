@@ -1,9 +1,27 @@
 const Project = require("../../lib/project");
+jest.mock("axios");
+const axios = require("axios").default;
 
 describe("Project", () => {
   const organization = "philips-internal";
   const number = 93;
   const project = new Project(organization, number);
+
+  test("getProjectId", async () => {
+    axios.post.mockResolvedValue({
+      data: {
+        data: {
+          organization: {
+            projectNext: {
+              id: "PN_kwDOA20Mnc0z2Q",
+            },
+          },
+        },
+      },
+    });
+    const id = await project.getProjectId();
+    expect(id).toBe("PN_kwDOA20Mnc0z2Q");
+  });
 
   test("makeStatusGroup", () => {
     const fields = [
@@ -33,6 +51,7 @@ describe("Project", () => {
       },
     ];
     const group = project.makeStatusGroup(fields);
-    expect(group).toEqual(fields[0].settings.options);
+    expect(group).toHaveProperty("85617f5a", "name", ":hammer:Others:hammer:");
+    expect(group).toHaveProperty("85617f5a", "items", []);
   });
 });
