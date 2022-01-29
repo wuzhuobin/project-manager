@@ -38,7 +38,39 @@ describe("e2e", () => {
 
     test("getProjectItems", async () => {
       const items = await project.getProjectItems();
-      expect(items.length).toEqual(104);
+      expect(items.length).toBe(104);
+    });
+
+    test("get100ProjectFieldsOfItemsByIds", async () => {
+      const fields = await project.get100ProjectFieldsOfItemsByIds([
+        "PNI_lADOA20Mnc0z2c4AFtBg",
+      ]);
+      expect(fields).toHaveLength(1);
+      expect(fields[0]).toEqual(
+        expect.arrayContaining([
+          {
+            value: "Summary of the first phrase",
+            projectField: {
+              id: "MDE2OlByb2plY3ROZXh0RmllbGQ5NTk0OA==",
+              name: "Title",
+            },
+          },
+          {
+            value: "85617f5a",
+            projectField: {
+              id: "MDE2OlByb2plY3ROZXh0RmllbGQ5NTk1MA==",
+              name: "Status",
+            },
+          },
+          {
+            value: "e1a62df9",
+            projectField: {
+              id: "MDE2OlByb2plY3ROZXh0RmllbGQxODc5NDM=",
+              name: "Priority",
+            },
+          },
+        ])
+      );
     });
   });
 });
