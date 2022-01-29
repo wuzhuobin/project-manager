@@ -1,6 +1,7 @@
 const Project = require("../../lib/project");
 
 describe("e2e", () => {
+  jest.setTimeout(10000);
   describe("Project", () => {
     const organization = "philips-internal";
     const number = 93;
@@ -39,10 +40,18 @@ describe("e2e", () => {
     test("getProjectItems", async () => {
       const items = await project.getProjectItems();
       expect(items.length).toBe(104);
+      expect(items).toContainEqual({
+        id: "PNI_lADOA20Mnc0z2c4AA9kB",
+        title: "What is ECDSA for ECC keys?",
+        content: {
+          __typename: "Issue",
+          id: "I_kwDOGPV02s49YTyQ",
+        },
+      });
     });
 
-    test("get100ProjectFieldsOfItemsByIds", async () => {
-      const fields = await project.get100ProjectFieldsOfItemsByIds([
+    test("get100ProjectItemFieldValuesOfItemsByIds", async () => {
+      const fields = await project.get100ProjectItemFieldValuesOfItemsByIds([
         "PNI_lADOA20Mnc0z2c4AFtBg",
       ]);
       expect(fields).toHaveLength(1);
@@ -71,6 +80,28 @@ describe("e2e", () => {
           },
         ])
       );
+    });
+
+    test("groupProjectItemsByStatus", async () => {
+      const fields = await project.getProjectFields();
+      const group = project.makeStatusGroup(fields);
+
+      const items = await project.getProjectItems();
+      const ids = items
+        .map((item) => item.id)
+        .filter((id, index) => index < 100);
+      const itemsFieldValues =
+        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+      const itemsFieldValuesWithId = ids.map((id, index) => {
+        return {
+          id,
+          fieldValues: itemsFieldValues[index],
+        };
+      });
+      project.groupProjectItemsByStatus(itemsFieldValuesWithId, group);
+      for (let key in group) {
+        expect(group[key].items.length).toBeDefined();
+      }
     });
   });
 });
