@@ -6,6 +6,16 @@ describe("e2e", () => {
     const number = 93;
     const project = new Project(organization, number, TOKEN);
 
+    test("_execute", async () => {
+      expect.assertions(1);
+      try {
+        await project._execute();
+      } catch (e) {
+        // eslint-disable-next-line jest/no-conditional-expect
+        expect(e).not.toBeNull();
+      }
+    });
+
     test("getProjectId", async () => {
       const id = await project.getProjectId();
       expect(id).toBe("PN_kwDOA20Mnc0z2Q");
