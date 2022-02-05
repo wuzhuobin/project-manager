@@ -1,20 +1,22 @@
-name: 'Hello World'
-description: 'Greet someone and record the time'
+name: "Hello World"
+description: "Greet someone and record the time"
 inputs:
   organization:
-    description: 'The name of the organization'
+    description: "The name of the organization"
     required: false
-  projectNumber: 
-    description: 'The number of the project'
+  projectNumber:
+    description: "The number of the project"
     required: false
-  token: 
+  token:
     description: |-
       'Token used to authenticate with GitHub API. Default is built-in token but a personal access token may be used for organization or user projects.'
     required: false
     default: ${{github.token}}
 outputs:
   isSuccess:
-    description: 'Is success?'
+    description: "Is success?"
+  issueContent:
+    description: "Issue content."
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"
