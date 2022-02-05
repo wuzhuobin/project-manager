@@ -37,6 +37,12 @@ class Project {
 
   setOrignization(organization) {
     this.organization = organization;
+    this.user = undefined;
+  }
+
+  setUser(user) {
+    this.user = user;
+    this.organization = undefined;
   }
 
   setProjectNumber(projectNumber) {
@@ -65,8 +71,9 @@ class Project {
 
   async _execute(query, variables) {
     const defaultVariables = {
-      organization: this.organization,
+      login: this.organization ? this.organization : this.user,
       number: this.projectNumber,
+      id: this.projectId,
     };
     variables = { ...defaultVariables, ...variables };
     const data = JSON.stringify({
@@ -82,38 +89,59 @@ class Project {
   }
 
   async getProjectId() {
-    const projectIds = `query projectIds($organization: String! $number: Int!){
-      organization(login: $organization){
-        projectNext(number: $number) {
-          id
-        }
-      }
-    }`;
-    const data = await this._execute(projectIds);
-    return data.data.organization.projectNext.id;
-  }
-
-  async getProjectFieldCount() {
-    const projectFieldCount = `query projectFieldCount($organization: String! $number: Int!){
-      organization(login: $organization){
-        projectNext(number: $number) {
-          fields {
-            totalCount
+    const projectIds = `
+      query projectIds($login: String! $number: Int!){
+        ${this.organization ? "organization" : "user"}(login: $login){
+          projectNext(number: $number) {
+            id
           }
         }
       }
-    }`;
+    `;
+    const data = await this._execute(projectIds);
+    return data.data[this.organization ? "organization" : "user"].projectNext
+      .id;
+  }
+
+  async getProjectFieldCount() {
+    const fieldCount = `
+      fields {
+        totalCount
+      }
+    `;
+    // legacy
+    if (!this.projectId) {
+      const projectFieldCount = `
+        query projectFieldCount($login: String! $number: Int!){
+          ${this.organization ? "organization" : "user"}(login: $login){
+            projectNext(number: $number) {
+              ${fieldCount}
+            }
+          }
+        }`;
+      const data = await this._execute(projectFieldCount);
+      return data.data.organization.projectNext.fields.totalCount;
+    }
+    const projectFieldCount = `
+      query projectFieldCount($id: ID!){
+        node(id: $id) {
+          ... on ProjectNext {
+            ${fieldCount}
+          }
+        }
+      }
+    `;
     const data = await this._execute(projectFieldCount);
-    return data.data.organization.projectNext.fields.totalCount;
+    return data.data.node.fields.totalCount;
   }
 
   async getProjectFields() {
     const projectFields = (
       noAfter = true
-    ) => `query projectFields($organization: String! $number: Int! $first: Int! ${
+    ) => `query projectFields($login: String! $number: Int! $first: Int! ${
       noAfter ? "" : "$after: String!"
     }){
-      organization(login: $organization) {
+      ${this.organization ? "organization" : "user"}(login: $login) {
         projectNext(number: $number) {
           fields(first: $first ${noAfter ? "" : "after: $after"}) {
             nodes {
@@ -197,8 +225,8 @@ class Project {
   }
 
   async getProjectItemCount() {
-    const projectItemCount = `query projectFieldName($organization: String! $number: Int!){
-      organization(login: $organization) {
+    const projectItemCount = `query projectFieldName($login: String! $number: Int!){
+      ${this.organization ? "organization" : "user"}(login: $login) {
         projectNext(number: $number) {
           items {
             totalCount
@@ -214,10 +242,10 @@ class Project {
   async getProjectItems() {
     const projectItems = (
       noAfter = true
-    ) => `query projectItems($organization: String! $number: Int! $first: Int! ${
+    ) => `query projectItems($login: String! $number: Int! $first: Int! ${
       noAfter ? "" : "$after: String!"
     }){
-        organization(login: $organization){
+        ${this.organization ? "organization" : "user"}(login: $login){
           projectNext(number: $number) {
             items(first: $first ${noAfter ? "" : "after: $after"}) {
               nodes {
@@ -325,10 +353,10 @@ class Project {
   async getProjectItemsLegacy() {
     const projectItems = (
       noAfter = true
-    ) => `query projectItems($organization: String! $number: Int! $first: Int! ${
+    ) => `query projectItems($login: String! $number: Int! $first: Int! ${
       noAfter ? "" : "$after: String!"
     }){
-        organization(login: $organization){
+        ${this.organization ? "organization" : "user"}(login: $login){
           projectNext(number: $number) {
             items(first: $first ${noAfter ? "" : "after: $after"}) {
               edges {
