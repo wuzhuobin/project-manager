@@ -5,7 +5,9 @@ describe("e2e", () => {
   describe("Project", () => {
     const organization = "philips-internal";
     const number = 93;
-    const project = new Project(organization, number, TOKEN);
+    const project = new Project(null, TOKEN);
+    project.setOrignization(organization);
+    project.setProjectNumber(number);
 
     test("_execute", async () => {
       expect.assertions(1);

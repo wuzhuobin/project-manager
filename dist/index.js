@@ -9,19 +9,30 @@ const axios = (__nccwpck_require__(6545)["default"]);
 class Project {
   static URL = "https://api.github.com/graphql";
 
-  constructor(organization, projectNumber, token) {
-    this.organization = organization;
-    this.projectNumber = projectNumber;
-    this.githubApiConfig = {
-      headers: {
-        Authorization: `token ${token}`,
-        "Content-Type": "application/json",
-      },
-    };
+  constructor(projectId, token) {
+    this.projectId = projectId;
+    if (token) {
+      this.githubApiConfig = {
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json",
+        },
+      };
+    } else {
+      this.githubApiConfig = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+    }
 
     this.storyPoint = "Story Point";
     this.status = "Status";
     this.sprint = "Sprint";
+  }
+
+  setProjectId(projectId) {
+    this.projectId = projectId;
   }
 
   setOrignization(organization) {
@@ -33,7 +44,11 @@ class Project {
   }
 
   setToken(token) {
-    this.githubApiConfig.headers.Authorization = `token ${token}`;
+    if (token) {
+      this.githubApiConfig.headers.Authorization = `token ${token}`;
+    } else {
+      this.githubApiConfig.headers = { "Content-Type": "application/json" };
+    }
   }
 
   setStoryPoint(storyPoint) {
@@ -13083,7 +13098,9 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
 
   const token = core.getInput("token");
-  const p = new Project(organization, projectNumber, token);
+  const p = new Project(null, token);
+  p.setOrignization(organization);
+  p.setProjectNumber(projectNumber);
   const projectId = await p.getProjectId();
   core.notice("projectId: " + projectId);
 

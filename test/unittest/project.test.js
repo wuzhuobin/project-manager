@@ -74,7 +74,9 @@ describe("Project", () => {
       settings: JSON.parse("null"),
     },
   ];
-  const project = new Project(organization, number);
+  const project = new Project();
+  project.setOrignization(organization);
+  project.setProjectNumber(number);
 
   test("getProjectId", async () => {
     axios.post.mockResolvedValue({
@@ -137,6 +139,13 @@ describe("Project", () => {
         Authorization: `token 12345678`,
         "Content-Type": "application/json",
       },
+    });
+  });
+
+  test("setTokenToNull", () => {
+    project.setToken(null);
+    expect(project.githubApiConfig).toEqual({
+      headers: { "Content-Type": "application/json" },
     });
   });
 });
