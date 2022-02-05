@@ -227,9 +227,11 @@ class Project {
                   __typename
                   ... on Issue {
                     id
+                    url
                   }
                   ... on PullRequest {
                     id
+                    url
                   }
                 }
               }
@@ -375,6 +377,42 @@ class Project {
 }
 
 module.exports = Project;
+
+
+/***/ }),
+
+/***/ 9089:
+/***/ ((module) => {
+
+const Render = {
+  projectItemsByStatus: function (statusGroup) {
+    let tbody = "";
+    for (const status in statusGroup) {
+      let items = statusGroup[status].items.join("<br/>");
+      tbody += `<tr>
+    <td>${statusGroup[status].name}</td>
+    <td>${statusGroup[status].items.length}</td>
+    <td>?</td>
+    <td>${items}</td>
+</tr>`;
+    }
+    let rendering = `<table>
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Total Number</th>
+            <th>Total Story Point</th>
+            <th>Items</th>
+        </tr>
+    </thead>
+    <tbody>
+        ${tbody}
+    </tbody>
+</table>`;
+    return rendering;
+  },
+};
+module.exports = Render;
 
 
 /***/ }),
@@ -13090,6 +13128,7 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const Project = __nccwpck_require__(9389);
+const Render = __nccwpck_require__(9089);
 
 async function run() {
   const organization = core.getInput("organization");
@@ -13098,11 +13137,27 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
 
   const token = core.getInput("token");
-  const p = new Project(null, token);
-  p.setOrignization(organization);
-  p.setProjectNumber(projectNumber);
-  const projectId = await p.getProjectId();
-  core.notice("projectId: " + projectId);
+  const project = new Project(null, token);
+  project.setOrignization(organization);
+  project.setProjectNumber(projectNumber);
+
+  const fields = await project.getProjectFields();
+  const statusGroup = project.makeStatusGroup(fields);
+
+  const items = await project.getProjectItems();
+  const ids = items.map((item) => item.id).filter((id, index) => index < 100);
+  const itemsFieldValues =
+    await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+  const itemsFieldValuesWithId = ids.map((id, index) => {
+    return {
+      id,
+      fieldValues: itemsFieldValues[index],
+    };
+  });
+  project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
+  const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
+  core.info(statusGroupHtml);
+  console.log(statusGroupHtml);
 
   core.setOutput("isSuccess", true);
 
