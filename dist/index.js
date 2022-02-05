@@ -33,7 +33,7 @@ class Project {
   }
 
   setToken(token) {
-    this.token = token;
+    this.githubApiConfig.headers.Authorization = `token ${token}`;
   }
 
   setStoryPoint(storyPoint) {
