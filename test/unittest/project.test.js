@@ -28,6 +28,13 @@ describe("Project", () => {
         name: "Priority",
       },
     },
+    {
+      value: "0b16fa06",
+      projectField: {
+        id: "MDE2OlByb2plY3ROZXh0RmllbGQyMzcyMDE=",
+        name: "Sprint",
+      },
+    },
   ];
   const testFields = [
     {
@@ -54,6 +61,18 @@ describe("Project", () => {
       name: "Story Point",
       settings: JSON.parse('{"width":119}'),
     },
+    {
+      id: "MDE2OlByb2plY3ROZXh0RmllbGQyMzcyMDE=",
+      name: "Sprint",
+      settings: JSON.parse(
+        '{"width":156,"configuration":{"duration":20,"start_day":2,"iterations":[],"completed_iterations":[{"id":"39857db5","title":"Sprint 3","duration":20,"start_date":"2022-01-01","title_html":"Sprint 3"},{"id":"0b16fa06","title":"Sprint 2","duration":16,"start_date":"2021-12-16","title_html":"Sprint 2"},{"id":"48a795a4","title":"Sprint 1","duration":50,"start_date":"2021-10-27","title_html":"Sprint 1"}]}}'
+      ),
+    },
+    {
+      id: "MDE2OlByb2plY3ROZXh0RmllbGQ0MTg2OTg=",
+      name: "Linked Pull Requests",
+      settings: JSON.parse("null"),
+    },
   ];
   const project = new Project(organization, number);
 
@@ -79,10 +98,35 @@ describe("Project", () => {
     expect(group).toHaveProperty("85617f5a", "items", []);
   });
 
+  test("makeSprintGroup", () => {
+    const group = project.makeSprintGroup(testFields);
+    expect(group).toHaveProperty(
+      "completedIterations",
+      "0b16fa06",
+      "title",
+      "Sprint 2"
+    );
+    expect(group).toHaveProperty(
+      "completedIterations",
+      "0b16fa06",
+      "items",
+      []
+    );
+  });
+
   test("groupProjectItemsByStatus", () => {
     const group = project.makeStatusGroup(testFields);
     const items = [{ id: testItemId, fieldValues: testItemFieldValues }];
     project.groupProjectItemsByStatus(items, group);
     expect(group["85617f5a"].items).toContainEqual(testItemId);
+  });
+
+  test("groupProjectItemsBySprint", () => {
+    const group = project.makeSprintGroup(testFields);
+    const items = [{ id: testItemId, fieldValues: testItemFieldValues }];
+    project.groupProjectItemsBySprint(items, group);
+    expect(group["completedIterations"]["0b16fa06"].items).toContainEqual(
+      testItemId
+    );
   });
 });

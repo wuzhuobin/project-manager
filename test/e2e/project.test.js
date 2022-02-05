@@ -101,6 +101,53 @@ describe("e2e", () => {
       project.groupProjectItemsByStatus(itemsFieldValuesWithId, group);
       for (let key in group) {
         expect(group[key].items.length).toBeDefined();
+        console.log(
+          "key: %s, name: %s, length: %d",
+          key,
+          group[key].name,
+          group[key].items.length
+        );
+      }
+    });
+
+    test("groupProjectItemsBySprint", async () => {
+      const fields = await project.getProjectFields();
+      const group = project.makeSprintGroup(fields);
+
+      const items = await project.getProjectItems();
+      const ids = items
+        .map((item) => item.id)
+        .filter((id, index) => index < 100);
+      const itemsFieldValues =
+        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+      const itemsFieldValuesWithId = ids.map((id, index) => {
+        return {
+          id,
+          fieldValues: itemsFieldValues[index],
+        };
+      });
+
+      project.groupProjectItemsBySprint(itemsFieldValuesWithId, group);
+      console.log("iterations");
+      for (let key in group.iterations) {
+        expect(group.iterations[key].items.length).toBeDefined();
+        console.log(
+          "key: %s, title: %s, length: %d",
+          key,
+          group.iterations[key].title,
+          group.iterations[key].items.length
+        );
+      }
+
+      console.log("completed iterations");
+      for (let key in group.completedIterations) {
+        expect(group.completedIterations[key].items.length).toBeDefined();
+        console.log(
+          "key: %s, title: %s, length: %d",
+          key,
+          group.completedIterations[key].title,
+          group.completedIterations[key].items.length
+        );
       }
     });
   });
