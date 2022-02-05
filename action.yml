@@ -1,13 +1,20 @@
 name: 'Hello World'
 description: 'Greet someone and record the time'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
-    required: true
-    default: 'World'
+  organization:
+    description: 'The name of the organization'
+    required: false
+  projectNumber: 
+    description: 'The number of the project'
+    required: false
+  token: 
+    description: |-
+      'Token used to authenticate with GitHub API. Default is built-in token but a personal access token may be used for organization or user projects.'
+    required: false
+    default: ${{github.token}}
 outputs:
-  time: # id of output
-    description: 'The time we greeted you'
+  isSuccess:
+    description: 'Is success?'
 runs:
   using: 'node16'
   main: 'dist/index.js'

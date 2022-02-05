@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "prebuild": "npm run lint:fix",
     "build": "ncc build lib/index.js",
     "jest": "jest",
     "test": "npm run jest",

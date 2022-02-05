@@ -13,7 +13,7 @@ describe("e2e", () => {
         await project._execute();
       } catch (e) {
         // eslint-disable-next-line jest/no-conditional-expect
-        expect(e).not.toBeNull();
+        expect(e.message).not.toBeNull();
       }
     });
 
