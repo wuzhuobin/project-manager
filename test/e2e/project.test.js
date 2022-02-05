@@ -6,23 +6,19 @@ describe("e2e", () => {
     describe("legacy", () => {
       const organization = "philips-internal";
       const number = 93;
+      const projectId = "PN_kwDOA20Mnc0z2Q";
       const project = new Project(null, TOKEN);
       project.setOrignization(organization);
       project.setProjectNumber(number);
 
       test("getProjectId", async () => {
         const id = await project.getProjectId();
-        expect(id).toBe("PN_kwDOA20Mnc0z2Q");
+        expect(id).toBe(projectId);
       });
 
       test("getProjectFieldCount", async () => {
         const count = await project.getProjectFieldCount();
         expect(count).toBe(12);
-      });
-
-      test("getProjectFields", async () => {
-        const fields = await project.getProjectFields();
-        expect(fields.length).toBe(12);
       });
 
       test("getProjectItemCount", async () => {
@@ -31,6 +27,10 @@ describe("e2e", () => {
       });
 
       test("getProjectItems", async () => {
+        const project = new Project(projectId, TOKEN);
+        project.setOrignization(organization);
+        project.setProjectNumber(number);
+
         const items = await project.getProjectItems();
         expect(items.length).toBe(104);
         expect(items).toContainEqual({
@@ -77,6 +77,10 @@ describe("e2e", () => {
       });
 
       test("groupProjectItemsByStatus", async () => {
+        const project = new Project(projectId, TOKEN);
+        project.setOrignization(organization);
+        project.setProjectNumber(number);
+
         const fields = await project.getProjectFields();
         const group = project.makeStatusGroup(fields);
 
@@ -105,6 +109,10 @@ describe("e2e", () => {
       });
 
       test("groupProjectItemsBySprint", async () => {
+        const project = new Project(projectId, TOKEN);
+        project.setOrignization(organization);
+        project.setProjectNumber(number);
+
         const fields = await project.getProjectFields();
         const group = project.makeSprintGroup(fields);
 
@@ -171,6 +179,11 @@ describe("e2e", () => {
     test("getProjectFieldCount", async () => {
       const count = await project.getProjectFieldCount();
       expect(count).toBe(10);
+    });
+
+    test("getProjectFields", async () => {
+      const fields = await project.getProjectFields();
+      expect(fields.length).toBe(10);
     });
   });
 });
