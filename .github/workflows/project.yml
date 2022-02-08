@@ -20,9 +20,10 @@ jobs:
           token: ${{secrets.TEST}}
 
       - name: print
-        run: echo "The last action result is ${{steps.projectTest.outputs.isSuccess}}." && echo "${{steps.projectTest.outputs.issueContent}}"
+        run: echo "The last action result is ${{steps.projectTest.outputs.isSuccess}}." && echo "${{steps.projectTest.outputs.statusGroupHtml}}"
 
       - name: test
+        if: ${{false}}
         uses: imjohnbo/issue-bot@v3
         with:
           title: test
