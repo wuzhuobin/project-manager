@@ -338,8 +338,8 @@ class Project {
     });
   }
 
-  groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup) {
-    for (let item of itemsFieldValuesWithId) {
+  groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
+    for (let item of itemsFieldValues) {
       const statusField = item.fieldValues.find(
         (fieldValue) => fieldValue.projectField.name === this.status
       );
@@ -350,8 +350,8 @@ class Project {
     return statusGroup;
   }
 
-  groupProjectItemsBySprint(itemsFieldValuesWithId, sprintGroup) {
-    for (let item of itemsFieldValuesWithId) {
+  groupProjectItemsBySprint(itemsFieldValues, sprintGroup) {
+    for (let item of itemsFieldValues) {
       const sprintField = item.fieldValues.find(
         (fieldValue) => fieldValue.projectField.name === this.sprint
       );
@@ -363,6 +363,19 @@ class Project {
         }
       }
     }
+  }
+
+  sumOfStoryPointByItemsFieldValues(itemsFieldValues) {
+    let sumOfStoryPoints = 0;
+    for (let item of itemsFieldValues) {
+      const storyPointsField = item.fieldValues.find(
+        (fieldValue) => fieldValue.projectField.name === this.storyPoint
+      );
+      if (storyPointsField) {
+        sumOfStoryPoints += parseInt(storyPointsField.value);
+      }
+    }
+    return sumOfStoryPoints;
   }
 
   async getProjectItemsLegacy() {
@@ -13221,29 +13234,29 @@ async function run() {
 
   const items = await project.getProjectItems();
   const itemsGroupPer100 = Util.arrayToEvery100Arrays(items);
-  const itemsFieldValuesWithIdGroupsPer100 = await Promise.all(
+  const itemsFieldValuesGroupsPer100 = await Promise.all(
     itemsGroupPer100.map(async (items) => {
       const ids = items.map((item) => item.id);
-      const itemsFieldValues =
+      const fieldValuesArray =
         await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-      const itemsFieldValuesWithId = items.map((item, index) => {
+      const itemsFieldValues = items.map((item, index) => {
         return {
           ...item,
-          fieldValues: itemsFieldValues[index],
+          fieldValues: fieldValuesArray[index],
         };
       });
-      return itemsFieldValuesWithId;
+      return itemsFieldValues;
     })
   );
-  core.info(itemsFieldValuesWithIdGroupsPer100);
-  const itemsFieldValuesWithId = itemsFieldValuesWithIdGroupsPer100.reduce(
+  core.info(itemsFieldValuesGroupsPer100);
+  const itemsFieldValues = itemsFieldValuesGroupsPer100.reduce(
     (previousValue, currentValue) => {
       core.info(previousValue);
       return previousValue.concat(currentValue);
     }
   );
 
-  project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
+  project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
 
   core.setOutput("isSuccess", true);
