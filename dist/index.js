@@ -13247,7 +13247,7 @@ async function run() {
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
 
   core.setOutput("isSuccess", true);
-  core.setOutput("issueContent", statusGroupHtml);
+  core.setOutput("statusGroupHtml", statusGroupHtml);
 
   const payload = JSON.stringify(github.context.payload, undefined, 2);
   console.log(`The event payload: ${payload}`);
