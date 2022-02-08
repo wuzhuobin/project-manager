@@ -120,16 +120,16 @@ describe("Project", () => {
     const group = project.makeStatusGroup(testFields);
     const items = [{ id: testItemId, fieldValues: testItemFieldValues }];
     project.groupProjectItemsByStatus(items, group);
-    expect(group["85617f5a"].items).toContainEqual(testItemId);
+    expect(group).toHaveProperty("85617f5a", "items", [testItemId]);
   });
 
   test("groupProjectItemsBySprint", () => {
     const group = project.makeSprintGroup(testFields);
     const items = [{ id: testItemId, fieldValues: testItemFieldValues }];
     project.groupProjectItemsBySprint(items, group);
-    expect(group["completedIterations"]["0b16fa06"].items).toContainEqual(
-      testItemId
-    );
+    expect(group).toHaveProperty("completedIterations", "0b16fa06", "items", [
+      testItemId,
+    ]);
   });
 
   test("setToken", () => {

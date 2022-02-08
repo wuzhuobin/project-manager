@@ -271,10 +271,12 @@ class Project {
                   __typename
                   ... on Issue {
                     id
+                    number
                     url
                   }
                   ... on PullRequest {
                     id
+                    number
                     url
                   }
                 }
@@ -342,7 +344,7 @@ class Project {
         (fieldValue) => fieldValue.projectField.name === this.status
       );
       if (statusField) {
-        statusGroup[statusField.value].items.push(item.id);
+        statusGroup[statusField.value].items.push(item);
       }
     }
     return statusGroup;
@@ -357,9 +359,7 @@ class Project {
         if (sprintGroup.iterations[sprintField.value]) {
           sprintGroup.iterations[sprintField.value].items.push(item.id);
         } else if (sprintGroup.completedIterations[sprintField.value]) {
-          sprintGroup.completedIterations[sprintField.value].items.push(
-            item.id
-          );
+          sprintGroup.completedIterations[sprintField.value].items.push(item);
         }
       }
     }
@@ -431,7 +431,11 @@ const Render = {
   projectItemsByStatus: function (statusGroup) {
     let tbody = "";
     for (const status in statusGroup) {
-      let items = statusGroup[status].items.join("<br/>");
+      let items = statusGroup[status].items
+        .map(
+          (item) => `<a href="${item.content.url}">#${item.content.number}</a>`
+        )
+        .join("<br/>");
       tbody += `<tr>
     <td>${statusGroup[status].name}</td>
     <td>${statusGroup[status].items.length}</td>
@@ -13216,22 +13220,21 @@ async function run() {
   const statusGroup = project.makeStatusGroup(fields);
 
   const items = await project.getProjectItems();
-  const idsGroupsPer100 = Util.arrayToEvery100Arrays(
-    items.map((item) => item.id)
-  );
-  core.info(idsGroupsPer100.length);
-  const itemsFieldValuesWithIdGroupsPer100 = idsGroupsPer100.map(
-    async (ids) => {
+  const itemsGroupPer100 = Util.arrayToEvery100Arrays(items);
+  // const idsGroupsPer100 = Util.arrayToEvery100Arrays(
+  //   items.map((item) => item.id)
+  // );
+  const itemsFieldValuesWithIdGroupsPer100 = itemsGroupPer100.map(
+    async (items) => {
+      const ids = items.map((item) => item.id);
       const itemsFieldValues =
         await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-      const itemsFieldValuesWithId = ids.map((id, index) => {
+      const itemsFieldValuesWithId = items.map((item, index) => {
         return {
-          id,
+          ...item,
           fieldValues: itemsFieldValues[index],
         };
       });
-      core.info("itemsFieldValues:");
-      core.info(itemsFieldValues);
       return itemsFieldValuesWithId;
     }
   );
@@ -13240,20 +13243,8 @@ async function run() {
       (previousValue, currentValue) => previousValue.concat(currentValue)
     );
 
-  // const ids = items.map((item) => item.id).filter((id, index) => index < 100);
-  // const itemsFieldValues =
-  //   await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-  // const itemsFieldValuesWithId = ids.map((id, index) => {
-  //   return {
-  //     id,
-  //     fieldValues: itemsFieldValues[index],
-  //   };
-  // });
-
-  core.info(itemsFieldValuesWithId);
   project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
-  core.info(statusGroupHtml);
 
   core.setOutput("isSuccess", true);
   core.setOutput("issueContent", statusGroupHtml);

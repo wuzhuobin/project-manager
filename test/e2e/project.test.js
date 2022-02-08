@@ -39,6 +39,7 @@ describe("e2e", () => {
           content: {
             __typename: "Issue",
             id: "I_kwDOGPV02s49YTyQ",
+            number: 1,
             url: "https://github.com/philips-internal/libscep/issues/1",
           },
         });
@@ -84,15 +85,15 @@ describe("e2e", () => {
         const fields = await project.getProjectFields();
         const group = project.makeStatusGroup(fields);
 
-        const items = await project.getProjectItems();
-        const ids = items
-          .map((item) => item.id)
-          .filter((id, index) => index < 100);
+        const items = await (
+          await project.getProjectItems()
+        ).filter((id, index) => index < 100);
+        const ids = items.map((item) => item.id);
         const itemsFieldValues =
           await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-        const itemsFieldValuesWithId = ids.map((id, index) => {
+        const itemsFieldValuesWithId = items.map((item, index) => {
           return {
-            id,
+            ...item,
             fieldValues: itemsFieldValues[index],
           };
         });

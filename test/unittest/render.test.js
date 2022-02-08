@@ -1,7 +1,7 @@
 const Render = require("../../lib/render");
 
 describe("Render", () => {
-  test("projectItemsByStatus", () => {
+  test.skip("projectItemsByStatus", () => {
     const testStatusGroup = {
       98236657: {
         name: "🏁Done🏁",
