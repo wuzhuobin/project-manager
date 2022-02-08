@@ -13221,8 +13221,8 @@ async function run() {
 
   const items = await project.getProjectItems();
   const itemsGroupPer100 = Util.arrayToEvery100Arrays(items);
-  const itemsFieldValuesWithIdGroupsPer100 = itemsGroupPer100.map(
-    async (items) => {
+  const itemsFieldValuesWithIdGroupsPer100 = await Promise.all(
+    itemsGroupPer100.map(async (items) => {
       const ids = items.map((item) => item.id);
       const itemsFieldValues =
         await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
@@ -13233,16 +13233,15 @@ async function run() {
         };
       });
       return itemsFieldValuesWithId;
+    })
+  );
+  core.info(itemsFieldValuesWithIdGroupsPer100);
+  const itemsFieldValuesWithId = itemsFieldValuesWithIdGroupsPer100.reduce(
+    (previousValue, currentValue) => {
+      core.info(previousValue);
+      return previousValue.concat(currentValue);
     }
   );
-  core.info(await itemsFieldValuesWithIdGroupsPer100);
-  const itemsFieldValuesWithId =
-    await itemsFieldValuesWithIdGroupsPer100.reduce(
-      (previousValue, currentValue) => {
-        core.info(previousValue);
-        return previousValue.concat(currentValue);
-      }
-    );
 
   project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
