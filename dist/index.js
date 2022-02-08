@@ -460,6 +460,21 @@ module.exports = Render;
 
 /***/ }),
 
+/***/ 4024:
+/***/ ((module) => {
+
+function arrayToEvery100Arrays(array) {
+  const arrays = [];
+  for (let i = 0; i < array.length; i += 100) {
+    arrays.push(array.slice(i, i + 100));
+  }
+  return arrays;
+}
+module.exports.arrayToEvery100Arrays = arrayToEvery100Arrays;
+
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -13172,6 +13187,7 @@ const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const Project = __nccwpck_require__(9389);
 const Render = __nccwpck_require__(9089);
+const Util = __nccwpck_require__(4024);
 
 async function run() {
   const organization = core.getInput("organization");
@@ -13200,15 +13216,41 @@ async function run() {
   const statusGroup = project.makeStatusGroup(fields);
 
   const items = await project.getProjectItems();
-  const ids = items.map((item) => item.id).filter((id, index) => index < 100);
-  const itemsFieldValues =
-    await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-  const itemsFieldValuesWithId = ids.map((id, index) => {
-    return {
-      id,
-      fieldValues: itemsFieldValues[index],
-    };
-  });
+  const idsGroupsPer100 = Util.arrayToEvery100Arrays(
+    items.map((item) => item.id)
+  );
+  core.info(idsGroupsPer100.length);
+  const itemsFieldValuesWithIdGroupsPer100 = idsGroupsPer100.map(
+    async (ids) => {
+      const itemsFieldValues =
+        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+      const itemsFieldValuesWithId = ids.map((id, index) => {
+        return {
+          id,
+          fieldValues: itemsFieldValues[index],
+        };
+      });
+      core.info("itemsFieldValues:");
+      core.info(itemsFieldValues);
+      return itemsFieldValuesWithId;
+    }
+  );
+  const itemsFieldValuesWithId =
+    await itemsFieldValuesWithIdGroupsPer100.reduce(
+      (previousValue, currentValue) => previousValue.concat(currentValue)
+    );
+
+  // const ids = items.map((item) => item.id).filter((id, index) => index < 100);
+  // const itemsFieldValues =
+  //   await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+  // const itemsFieldValuesWithId = ids.map((id, index) => {
+  //   return {
+  //     id,
+  //     fieldValues: itemsFieldValues[index],
+  //   };
+  // });
+
+  core.info(itemsFieldValuesWithId);
   project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
   core.info(statusGroupHtml);
