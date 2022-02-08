@@ -1,6 +1,6 @@
 name: project
 
-on: 
+on:
   push:
 
 jobs:
@@ -18,13 +18,13 @@ jobs:
           user: wuzhuobin
           projectNumber: 1
           token: ${{secrets.TEST}}
+
       - name: print
         run: echo "The last action result is ${{steps.projectTest.outputs.isSuccess}}." && echo "${{steps.projectTest.outputs.issueContent}}"
-          
-    # Generates and pins new standup issue, closes previous, writes linking comments, and assigns to all assignees in list
-      - name: New standup issue
+
+      - name: test
         uses: imjohnbo/issue-bot@v3
         with:
           title: test
           body: |-
-            ${{steps.projectTest.outputs.issueContent}}
+            ${{steps.projectTest.outputs.statusGroupHtml}}
