@@ -445,16 +445,15 @@ const Render = {
   projectItemsByStatus: function (statusGroup) {
     let tbody = "";
     for (const status in statusGroup) {
-      let items = statusGroup[status].items
-        .map(
-          (item) => `<a href="${item.content.url}">#${item.content.number}</a>`
-        )
-        .join("<br/>");
       tbody += `<tr>
     <td>${statusGroup[status].name}</td>
     <td>${statusGroup[status].items.length}</td>
-    <td>?</td>
-    <td>${items}</td>
+    <td>${statusGroup[status].sumOfStoryPoint}</td>
+    <td>${statusGroup[status].items
+      .map(
+        (item) => `<a href="${item.content.url}">#${item.content.number}</a>`
+      )
+      .join("<br/>")}</td>
 </tr>`;
     }
     let rendering = `<table>
@@ -13249,15 +13248,17 @@ async function run() {
       return itemsFieldValues;
     })
   );
-  core.info(itemsFieldValuesGroupsPer100);
   const itemsFieldValues = itemsFieldValuesGroupsPer100.reduce(
     (previousValue, currentValue) => {
-      core.info(previousValue);
       return previousValue.concat(currentValue);
     }
   );
 
   project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
+  for (const status in statusGroup) {
+    statusGroup[status].sumOfStoryPoint =
+      project.sumOfStoryPointByItemsFieldValues(statusGroup[status].items);
+  }
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
 
   core.setOutput("isSuccess", true);

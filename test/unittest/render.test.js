@@ -127,6 +127,7 @@ describe("Render", () => {
             ],
           },
         ],
+        sumOfStoryPoints: 20,
       },
       "85617f5a": {
         name: ":hammer:Others:hammer:",
@@ -166,6 +167,7 @@ describe("Render", () => {
             fieldValues: [],
           },
         ],
+        sumOfStoryPoints: 10,
       },
       "9c41f080": {
         name: ":scroll:Backlog:scroll:",
@@ -174,10 +176,12 @@ describe("Render", () => {
       f75ad846: {
         name: "🚩Todo🚩",
         items: [],
+        sumOfStoryPoints: 0,
       },
       "47fc9ee4": {
         name: "🐝In Progress🐝",
         items: [],
+        sumOfStoryPoints: 0,
       },
     };
 
