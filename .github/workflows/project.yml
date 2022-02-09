@@ -29,3 +29,4 @@ jobs:
           title: test
           body: |-
             ${{steps.projectTest.outputs.statusGroupHtml}}
+            ${{steps.projectTest.outputs.sprintGroupHtml}}

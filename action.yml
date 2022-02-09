@@ -20,6 +20,8 @@ outputs:
     description: "Is success?"
   statusGroupHtml:
     description: "Status group in html."
+  sprintGroupHtml:
+    description: "sprint group in html."
 runs:
   using: "node16"
   main: "dist/index.js"

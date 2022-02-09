@@ -447,7 +447,7 @@ const Render = {
       const length = Object.keys(group).length;
       let groupHtml;
       if (length === 0) {
-        groupHtml = `<th rowspan="1">${groupName}</th><td></td>`;
+        groupHtml = `<th rowspan="1">${groupName}</th><td></td><td></td><td></td><td></td>`;
       } else {
         groupHtml = Object.entries(group)
           .map(([, sprint], index) => {
@@ -13303,7 +13303,8 @@ async function run() {
 
   const sprintGroup = project.makeSprintGroup(fields);
   project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
-  // core.setOutput()
+  const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
+  core.setOutput("sprintGroupHtml", sprintGroupHtml);
 
   core.setOutput("isSuccess", true);
 
