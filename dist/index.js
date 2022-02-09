@@ -311,7 +311,8 @@ class Project {
   }
 
   async get100ProjectItemFieldValuesOfItemsByIds(ids) {
-    const projectItemFieldValuesOfItemsByIds = `query projectItemFieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
+    const projectItemFieldValuesOfItemsByIds = `
+      query projectItemFieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
       {
         nodes(ids: $ids)
         {

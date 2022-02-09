@@ -289,7 +289,7 @@ describe("e2e", () => {
         },
         {
           id: "PNI_lADOAQRINs4AAnY_zgAey4A",
-          title: "Test issue 4",
+          title: "Test issue 5",
           content: {
             __typename: "Issue",
             id: "I_kwDOGubbrc5DDJSR",
@@ -315,7 +315,7 @@ describe("e2e", () => {
       });
       const sumOfStoryPoints =
         project.sumOfStoryPointByItemsFieldValues(itemsFieldValues);
-      expect(sumOfStoryPoints).toBe(49);
+      expect(sumOfStoryPoints).toBe(36);
     });
   });
 });
