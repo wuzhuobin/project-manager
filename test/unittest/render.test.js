@@ -188,4 +188,195 @@ describe("Render", () => {
     const rendering = Render.projectItemsByStatus(testStatusGroup);
     expect(rendering).toBeDefined();
   });
+
+  test("projectItemsBySprint", () => {
+    const testSprintGroup = {
+      iterations: {},
+      completedIterations: {
+        e32c7736: {
+          id: "e32c7736",
+          title: "Sprint 3",
+          duration: 14,
+          start_date: "2021-12-29",
+          title_html: "Sprint 3",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyZk",
+              title: "Test issue 4",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGen",
+                number: 4,
+                url: "https://github.com/wuzhuobin/project-manager/issues/4",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 4",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "98236657",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "e32c7736",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "5",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAey4A",
+              title: "Test issue 5",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDJSR",
+                number: 5,
+                url: "https://github.com/wuzhuobin/project-manager/issues/5",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 5",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "5d1a4113",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "e32c7736",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        c96bbd0b: {
+          id: "c96bbd0b",
+          title: "Sprint 2",
+          duration: 14,
+          start_date: "2021-12-15",
+          title_html: "Sprint 2",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyY4",
+              title: "Test issue 3",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGci",
+                number: 3,
+                url: "https://github.com/wuzhuobin/project-manager/issues/3",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 3",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "47fc9ee4",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "c96bbd0b",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "3",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        "8cef9a6d": {
+          id: "8cef9a6d",
+          title: "Sprint 1",
+          duration: 14,
+          start_date: "2021-12-01",
+          title_html: "Sprint 1",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyX8",
+              title: "Test issue 2",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGWs",
+                number: 2,
+                url: "https://github.com/wuzhuobin/project-manager/issues/2",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 2",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "f75ad846",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "8cef9a6d",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "8",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    };
+
+    const rendering = Render.projectItemsBySprint(testSprintGroup);
+    expect(rendering).toBeDefined();
+  });
 });

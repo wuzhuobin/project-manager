@@ -117,15 +117,15 @@ describe("e2e", () => {
         const fields = await project.getProjectFields();
         const group = project.makeSprintGroup(fields);
 
-        const items = await project.getProjectItems();
-        const ids = items
-          .map((item) => item.id)
-          .filter((id, index) => index < 100);
+        const items = await (
+          await project.getProjectItems()
+        ).filter((item, index) => index < 100);
+        const ids = items.map((item) => item.id);
         const fieldValuesArray =
           await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-        const itemsFieldValues = ids.map((id, index) => {
+        const itemsFieldValues = items.map((item, index) => {
           return {
-            id,
+            ...item,
             fieldValues: fieldValuesArray[index],
           };
         });
@@ -316,6 +316,438 @@ describe("e2e", () => {
       const sumOfStoryPoints =
         project.sumOfStoryPointByItemsFieldValues(itemsFieldValues);
       expect(sumOfStoryPoints).toBe(36);
+    });
+
+    test("groupProjectItemsByStatus", async () => {
+      const fields = await project.getProjectFields();
+      const group = project.makeStatusGroup(fields);
+
+      const items = await (
+        await project.getProjectItems()
+      ).filter((id, index) => index < 100);
+      const ids = items.map((item) => item.id);
+      const fieldValuesArray =
+        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+      const itemsFieldValues = items.map((item, index) => {
+        return {
+          ...item,
+          fieldValues: fieldValuesArray[index],
+        };
+      });
+      project.groupProjectItemsByStatus(itemsFieldValues, group);
+      expect(group).toEqual({
+        98236657: {
+          name: "Done",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyZk",
+              title: "Test issue 4",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGen",
+                number: 4,
+                url: "https://github.com/wuzhuobin/project-manager/issues/4",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 4",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "98236657",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "e32c7736",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "5",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        "5d1a4113": {
+          name: "Others",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyXs",
+              title: "Test issue 1",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGUb",
+                number: 1,
+                url: "https://github.com/wuzhuobin/project-manager/issues/1",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 1",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "5d1a4113",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "20",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAey4A",
+              title: "Test issue 5",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDJSR",
+                number: 5,
+                url: "https://github.com/wuzhuobin/project-manager/issues/5",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 5",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "5d1a4113",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "e32c7736",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        f75ad846: {
+          name: "Todo",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyX8",
+              title: "Test issue 2",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGWs",
+                number: 2,
+                url: "https://github.com/wuzhuobin/project-manager/issues/2",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 2",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "f75ad846",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "8cef9a6d",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "8",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        "47fc9ee4": {
+          name: "In Progress",
+          items: [
+            {
+              id: "PNI_lADOAQRINs4AAnY_zgAeyY4",
+              title: "Test issue 3",
+              content: {
+                __typename: "Issue",
+                id: "I_kwDOGubbrc5DDGci",
+                number: 3,
+                url: "https://github.com/wuzhuobin/project-manager/issues/3",
+              },
+              fieldValues: [
+                {
+                  value: "Test issue 3",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                    name: "Title",
+                  },
+                },
+                {
+                  value: "47fc9ee4",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                    name: "Status",
+                  },
+                },
+                {
+                  value: "c96bbd0b",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                    name: "Sprint",
+                  },
+                },
+                {
+                  value: "3",
+                  projectField: {
+                    id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                    name: "Story Point",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    test("groupProjectItemsBySprint", async () => {
+      const fields = await project.getProjectFields();
+      const group = project.makeSprintGroup(fields);
+
+      const items = await (
+        await project.getProjectItems()
+      ).filter((item, index) => index < 100);
+      const ids = items.map((item) => item.id);
+      const fieldValuesArray =
+        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+      const itemsFieldValues = items.map((item, index) => {
+        return {
+          ...item,
+          fieldValues: fieldValuesArray[index],
+        };
+      });
+
+      project.groupProjectItemsBySprint(itemsFieldValues, group);
+      expect(group).toEqual({
+        iterations: {},
+        completedIterations: {
+          e32c7736: {
+            id: "e32c7736",
+            title: "Sprint 3",
+            duration: 14,
+            start_date: "2021-12-29",
+            title_html: "Sprint 3",
+            items: [
+              {
+                id: "PNI_lADOAQRINs4AAnY_zgAeyZk",
+                title: "Test issue 4",
+                content: {
+                  __typename: "Issue",
+                  id: "I_kwDOGubbrc5DDGen",
+                  number: 4,
+                  url: "https://github.com/wuzhuobin/project-manager/issues/4",
+                },
+                fieldValues: [
+                  {
+                    value: "Test issue 4",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                      name: "Title",
+                    },
+                  },
+                  {
+                    value: "98236657",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                      name: "Status",
+                    },
+                  },
+                  {
+                    value: "e32c7736",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                      name: "Sprint",
+                    },
+                  },
+                  {
+                    value: "5",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                      name: "Story Point",
+                    },
+                  },
+                ],
+              },
+              {
+                id: "PNI_lADOAQRINs4AAnY_zgAey4A",
+                title: "Test issue 5",
+                content: {
+                  __typename: "Issue",
+                  id: "I_kwDOGubbrc5DDJSR",
+                  number: 5,
+                  url: "https://github.com/wuzhuobin/project-manager/issues/5",
+                },
+                fieldValues: [
+                  {
+                    value: "Test issue 5",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                      name: "Title",
+                    },
+                  },
+                  {
+                    value: "5d1a4113",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                      name: "Status",
+                    },
+                  },
+                  {
+                    value: "e32c7736",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                      name: "Sprint",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          c96bbd0b: {
+            id: "c96bbd0b",
+            title: "Sprint 2",
+            duration: 14,
+            start_date: "2021-12-15",
+            title_html: "Sprint 2",
+            items: [
+              {
+                id: "PNI_lADOAQRINs4AAnY_zgAeyY4",
+                title: "Test issue 3",
+                content: {
+                  __typename: "Issue",
+                  id: "I_kwDOGubbrc5DDGci",
+                  number: 3,
+                  url: "https://github.com/wuzhuobin/project-manager/issues/3",
+                },
+                fieldValues: [
+                  {
+                    value: "Test issue 3",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                      name: "Title",
+                    },
+                  },
+                  {
+                    value: "47fc9ee4",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                      name: "Status",
+                    },
+                  },
+                  {
+                    value: "c96bbd0b",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                      name: "Sprint",
+                    },
+                  },
+                  {
+                    value: "3",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                      name: "Story Point",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          "8cef9a6d": {
+            id: "8cef9a6d",
+            title: "Sprint 1",
+            duration: 14,
+            start_date: "2021-12-01",
+            title_html: "Sprint 1",
+            items: [
+              {
+                id: "PNI_lADOAQRINs4AAnY_zgAeyX8",
+                title: "Test issue 2",
+                content: {
+                  __typename: "Issue",
+                  id: "I_kwDOGubbrc5DDGWs",
+                  number: 2,
+                  url: "https://github.com/wuzhuobin/project-manager/issues/2",
+                },
+                fieldValues: [
+                  {
+                    value: "Test issue 2",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDU5",
+                      name: "Title",
+                    },
+                  },
+                  {
+                    value: "f75ad846",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxMzU4MDYx",
+                      name: "Status",
+                    },
+                  },
+                  {
+                    value: "8cef9a6d",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY2",
+                      name: "Sprint",
+                    },
+                  },
+                  {
+                    value: "8",
+                    projectField: {
+                      id: "MDE2OlByb2plY3ROZXh0RmllbGQxNTMxNjY3",
+                      name: "Story Point",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
     });
   });
 });

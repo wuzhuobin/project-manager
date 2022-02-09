@@ -442,33 +442,72 @@ module.exports = Project;
 /***/ ((module) => {
 
 const Render = {
+  projectItemsBySprint: function (sprintGroup) {
+    function group(group, groupName) {
+      const length = Object.keys(group).length;
+      let groupHtml;
+      if (length === 0) {
+        groupHtml = `<th rowspan="1">${groupName}</th><td></td>`;
+      } else {
+        groupHtml = Object.entries(group)
+          .map(([, sprint], index) => {
+            return `<tr>
+            ${
+              index === 0
+                ? `<th rowspan="${length}">${groupName}</th>`
+                : "<br/>"
+            }
+            <td>${sprint.title}</td>
+            <td>?</td>
+            <td>?</td>
+            <td>?</td>
+        </tr>`;
+          })
+          .join("\n");
+      }
+      return groupHtml;
+    }
+
+    let rendering = `<table>
+        <tbody>
+            <tr>
+                <th colspan="2">Sprint</th>
+                <th>Total Number</th>
+                <th>Total Story Point</th>
+                <th>Items</th>
+            </tr>
+            ${group(sprintGroup.iterations, "Iterating")}
+            ${group(sprintGroup.completedIterations, "Completed")}
+        </tbody>
+    </table>`;
+    return rendering;
+  },
   projectItemsByStatus: function (statusGroup) {
-    let tbody = "";
+    let content = "";
     for (const status in statusGroup) {
-      tbody += `<tr>
-    <td>${statusGroup[status].name}</td>
-    <td>${statusGroup[status].items.length}</td>
-    <td>${statusGroup[status].sumOfStoryPoint}</td>
-    <td>${statusGroup[status].items
-      .map(
-        (item) => `<a href="${item.content.url}">#${item.content.number}</a>`
-      )
-      .join("<br/>")}</td>
-</tr>`;
+      content += `<tr>
+          <td>${statusGroup[status].name}</td>
+          <td>${statusGroup[status].items.length}</td>
+          <td>${statusGroup[status].sumOfStoryPoint}</td>
+          <td>${statusGroup[status].items
+            .map(
+              (item) =>
+                `<a href="${item.content.url}">#${item.content.number}</a>`
+            )
+            .join("<br/>")}</td>
+      </tr>`;
     }
     let rendering = `<table>
-    <thead>
-        <tr>
-            <th>Status</th>
-            <th>Total Number</th>
-            <th>Total Story Point</th>
-            <th>Items</th>
-        </tr>
-    </thead>
-    <tbody>
-        ${tbody}
-    </tbody>
-</table>`;
+        <tbody>
+            <tr>
+                <th>Status</th>
+                <th>Total Number</th>
+                <th>Total Story Point</th>
+                <th>Items</th>
+            </tr>
+            ${content}
+        </tbody>
+    </table>`;
     return rendering;
   },
 };
@@ -13230,7 +13269,6 @@ async function run() {
   }
 
   const fields = await project.getProjectFields();
-  const statusGroup = project.makeStatusGroup(fields);
 
   const items = await project.getProjectItems();
   const itemsGroupPer100 = Util.arrayToEvery100Arrays(items);
@@ -13254,15 +13292,20 @@ async function run() {
     }
   );
 
+  const statusGroup = project.makeStatusGroup(fields);
   project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
   for (const status in statusGroup) {
     statusGroup[status].sumOfStoryPoint =
       project.sumOfStoryPointByItemsFieldValues(statusGroup[status].items);
   }
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
+  core.setOutput("statusGroupHtml", statusGroupHtml);
+
+  const sprintGroup = project.makeSprintGroup(fields);
+  project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
+  // core.setOutput()
 
   core.setOutput("isSuccess", true);
-  core.setOutput("statusGroupHtml", statusGroupHtml);
 
   const payload = JSON.stringify(github.context.payload, undefined, 2);
   console.log(`The event payload: ${payload}`);
