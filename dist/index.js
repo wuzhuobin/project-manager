@@ -367,16 +367,16 @@ class Project {
   }
 
   sumOfStoryPointByItemsFieldValues(itemsFieldValues) {
-    let sumOfStoryPoints = 0;
+    let sumOfStoryPoint = 0;
     for (let item of itemsFieldValues) {
       const storyPointsField = item.fieldValues.find(
         (fieldValue) => fieldValue.projectField.name === this.storyPoint
       );
       if (storyPointsField) {
-        sumOfStoryPoints += parseInt(storyPointsField.value);
+        sumOfStoryPoint += parseInt(storyPointsField.value);
       }
     }
-    return sumOfStoryPoints;
+    return sumOfStoryPoint;
   }
 
   async getProjectItemsLegacy() {
@@ -458,9 +458,14 @@ const Render = {
                 : "<br/>"
             }
             <td>${sprint.title}</td>
-            <td>?</td>
-            <td>?</td>
-            <td>?</td>
+            <td>${sprint.items.length}</td>
+            <td>${sprint.sumOfStoryPoint}</td>
+            <td>${sprint.items
+              .map(
+                (item) =>
+                  `<a href="${item.content.url}">#${item.content.number}</a>`
+              )
+              .join("<br/>")}</td>
         </tr>`;
           })
           .join("\n");
@@ -13303,6 +13308,14 @@ async function run() {
 
   const sprintGroup = project.makeSprintGroup(fields);
   project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
+  for (const group in sprintGroup) {
+    for (const sprint in sprintGroup[group]) {
+      sprintGroup[group][sprint].sumOfStoryPoint =
+        project.sumOfStoryPointByItemsFieldValues(
+          sprintGroup[group][sprint].items
+        );
+    }
+  }
   const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
   core.setOutput("sprintGroupHtml", sprintGroupHtml);
 

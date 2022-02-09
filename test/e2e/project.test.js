@@ -300,7 +300,7 @@ describe("e2e", () => {
       ]);
     });
 
-    test("sumOfStoryPointsByItemsFieldValues", async () => {
+    test("sumOfStoryPointByItemsFieldValues", async () => {
       const items = await (
         await project.getProjectItems()
       ).filter((id, index) => index < 100);
@@ -313,9 +313,9 @@ describe("e2e", () => {
           fieldValues: fieldValuesArray[index],
         };
       });
-      const sumOfStoryPoints =
+      const sumOfStoryPoint =
         project.sumOfStoryPointByItemsFieldValues(itemsFieldValues);
-      expect(sumOfStoryPoints).toBe(36);
+      expect(sumOfStoryPoint).toBe(36);
     });
 
     test("groupProjectItemsByStatus", async () => {
