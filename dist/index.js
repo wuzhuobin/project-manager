@@ -11,21 +11,7 @@ class Project {
 
   constructor(projectId, token) {
     this.projectId = projectId;
-    if (token) {
-      this.githubApiConfig = {
-        headers: {
-          Authorization: `token ${token}`,
-          "Content-Type": "application/json",
-        },
-      };
-    } else {
-      this.githubApiConfig = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-    }
-
+    this.token = token;
     this.storyPoint = "Story Point";
     this.status = "Status";
     this.sprint = "Sprint";
@@ -50,11 +36,7 @@ class Project {
   }
 
   setToken(token) {
-    if (token) {
-      this.githubApiConfig.headers.Authorization = `token ${token}`;
-    } else {
-      this.githubApiConfig.headers = { "Content-Type": "application/json" };
-    }
+    this.token = token;
   }
 
   setStoryPoint(storyPoint) {
@@ -80,7 +62,13 @@ class Project {
       query,
       variables,
     });
-    const respose = await axios.post(Project.URL, data, this.githubApiConfig);
+
+    const respose = await axios.post(Project.URL, data, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: this.token ? `token ${this.token}` : undefined,
+      },
+    });
     if (respose.data.errors) {
       const message = JSON.stringify(respose.data.errors, null, 2);
       throw new Error(message);

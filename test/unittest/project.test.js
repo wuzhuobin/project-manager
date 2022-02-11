@@ -131,21 +131,4 @@ describe("Project", () => {
       testItemId,
     ]);
   });
-
-  test("setToken", () => {
-    project.setToken("12345678");
-    expect(project.githubApiConfig).toEqual({
-      headers: {
-        Authorization: `token 12345678`,
-        "Content-Type": "application/json",
-      },
-    });
-  });
-
-  test("setTokenToNull", () => {
-    project.setToken(null);
-    expect(project.githubApiConfig).toEqual({
-      headers: { "Content-Type": "application/json" },
-    });
-  });
 });
