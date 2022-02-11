@@ -305,9 +305,9 @@ class Project {
     return items;
   }
 
-  async get100ProjectItemFieldValuesOfItemsByIds(ids) {
-    const projectItemFieldValuesOfItemsByIds = `
-      query projectItemFieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
+  async getProjectItemFirst100FieldValuesOfItemsByIds(ids) {
+    const projectItemFirst100FieldValuesOfItemsByIds = `
+      query projectItemFirst100FieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
       {
         nodes(ids: $ids)
         {
@@ -325,13 +325,38 @@ class Project {
         }
       }`;
 
-    const data = await this._execute(projectItemFieldValuesOfItemsByIds, {
-      ids,
-      first: 100,
-    });
+    const data = await this._execute(
+      projectItemFirst100FieldValuesOfItemsByIds,
+      {
+        ids,
+        first: 100,
+      }
+    );
     return data.nodes.map((node) => {
       return node.fieldValues.nodes;
     });
+  }
+
+  async getAssignableFirst100Assignees(ids) {
+    const assignableFirst100Assignees = `
+      query getAssignableFirst100Assignees($ids: [ID!]! $first: Int!) {
+        nodes(ids: $ids) {
+          ... on Assignable {
+            assignees(first: $first) {
+              nodes{
+                name
+                login
+              }
+            }
+          }
+        }
+      }
+    `;
+    const data = await this._execute(assignableFirst100Assignees, {
+      ids,
+      first: 100,
+    });
+    return data.nodes.map((node) => node.assignees.nodes);
   }
 
   groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
@@ -13276,7 +13301,7 @@ async function run() {
     itemsGroupPer100.map(async (items) => {
       const ids = items.map((item) => item.id);
       const fieldValuesArray =
-        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+        await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
       const itemsFieldValues = items.map((item, index) => {
         return {
           ...item,

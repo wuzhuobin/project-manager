@@ -41,10 +41,11 @@ describe("e2e", () => {
           });
         });
 
-        test("get100ProjectItemFieldValuesOfItemsByIds", async () => {
-          const fields = await project.get100ProjectItemFieldValuesOfItemsByIds(
-            ["PNI_lADOA20Mnc0z2c4AFtBg"]
-          );
+        test("getProjectItemFirst100FieldValuesOfItemsByIds", async () => {
+          const fields =
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds([
+              "PNI_lADOA20Mnc0z2c4AFtBg",
+            ]);
           expect(fields).toHaveLength(1);
           expect(fields[0]).toEqual(
             expect.arrayContaining([
@@ -86,7 +87,7 @@ describe("e2e", () => {
           ).filter((id, index) => index < 100);
           const ids = items.map((item) => item.id);
           const fieldValuesArray =
-            await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
           const itemsFieldValues = items.map((item, index) => {
             return {
               ...item,
@@ -118,7 +119,7 @@ describe("e2e", () => {
           ).filter((item, index) => index < 100);
           const ids = items.map((item) => item.id);
           const fieldValuesArray =
-            await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
           const itemsFieldValues = items.map((item, index) => {
             return {
               ...item,
@@ -296,10 +297,12 @@ describe("e2e", () => {
           );
         });
 
-        test("get100ProjectItemFieldValuesOfItemsByIds", async () => {
-          const fields = await project.get100ProjectItemFieldValuesOfItemsByIds(
-            ["PNI_lADOAQRINs4AAnY_zgAeyXs", "PNI_lADOAQRINs4AAnY_zgAeyX8"]
-          );
+        test("getProjectItemFirst100FieldValuesOfItemsByIds", async () => {
+          const fields =
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds([
+              "PNI_lADOAQRINs4AAnY_zgAeyXs",
+              "PNI_lADOAQRINs4AAnY_zgAeyX8",
+            ]);
           expect(fields).toHaveLength(2);
           expect(fields).toEqual([
             [
@@ -365,13 +368,29 @@ describe("e2e", () => {
           ]);
         });
 
+        test("getAssignableFirst100Assignees", async () => {
+          const assignableIds = ["I_kwDOGubbrc5DDGUb", "I_kwDOGubbrc5DDGWs"];
+          const assigness = await project.getAssignableFirst100Assignees(
+            assignableIds
+          );
+          expect(assigness).toEqual([
+            [
+              {
+                name: "wuzhuobin",
+                login: "wuzhuobin",
+              },
+            ],
+            [],
+          ]);
+        });
+
         test("sumOfStoryPointByItemsFieldValues", async () => {
           const items = await (
             await project.getProjectItems()
           ).filter((id, index) => index < 100);
           const ids = items.map((item) => item.id);
           const fieldValuesArray =
-            await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
           const itemsFieldValues = items.map((item, index) => {
             return {
               ...item,
@@ -392,7 +411,7 @@ describe("e2e", () => {
           ).filter((id, index) => index < 100);
           const ids = items.map((item) => item.id);
           const fieldValuesArray =
-            await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
           const itemsFieldValues = items.map((item, index) => {
             return {
               ...item,
@@ -419,7 +438,7 @@ describe("e2e", () => {
           ).filter((item, index) => index < 100);
           const ids = items.map((item) => item.id);
           const fieldValuesArray =
-            await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
           const itemsFieldValues = items.map((item, index) => {
             return {
               ...item,
