@@ -74,7 +74,7 @@ describe("Project", () => {
       settings: JSON.parse("null"),
     },
   ];
-  const project = new Project();
+  const project = new Project(null, null, true);
   project.setOrignization(organization);
   project.setProjectNumber(number);
 

@@ -5,13 +5,12 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const axios = (__nccwpck_require__(6545)["default"]);
-
+const github = __nccwpck_require__(5438);
 class Project {
-  static URL = "https://api.github.com/graphql";
-
-  constructor(projectId, token) {
+  constructor(projectId, token, useAxios = false) {
     this.projectId = projectId;
     this.token = token;
+    this.useAxios = useAxios;
     this.storyPoint = "Story Point";
     this.status = "Status";
     this.sprint = "Sprint";
@@ -58,22 +57,31 @@ class Project {
       id: this.projectId,
     };
     variables = { ...defaultVariables, ...variables };
-    const data = JSON.stringify({
-      query,
-      variables,
-    });
 
-    const respose = await axios.post(Project.URL, data, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: this.token ? `token ${this.token}` : undefined,
-      },
-    });
-    if (respose.data.errors) {
-      const message = JSON.stringify(respose.data.errors, null, 2);
-      throw new Error(message);
+    let result;
+    if (this.useAxios) {
+      const data = JSON.stringify({
+        query,
+        variables,
+      });
+
+      const url = "https://api.github.com/graphql";
+      const respose = await axios.post(url, data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: this.token ? `token ${this.token}` : undefined,
+        },
+      });
+      if (result.errors) {
+        const message = JSON.stringify(result.errors, null, 2);
+        throw new Error(message);
+      }
+      result = respose.data.data;
+    } else {
+      const octokit = github.getOctokit(this.token || "");
+      result = await octokit.graphql(query, variables);
     }
-    return respose.data;
+    return result;
   }
 
   async getProjectId() {
@@ -87,8 +95,7 @@ class Project {
       }
     `;
     const data = await this._execute(projectIds);
-    return data.data[this.organization ? "organization" : "user"].projectNext
-      .id;
+    return data[this.organization ? "organization" : "user"].projectNext.id;
   }
 
   async getProjectFieldCount() {
@@ -108,7 +115,7 @@ class Project {
           }
         }`;
       const data = await this._execute(projectFieldCount);
-      return data.data.organization.projectNext.fields.totalCount;
+      return data.organization.projectNext.fields.totalCount;
     }
     const projectFieldCount = `
       query projectFieldCount($id: ID!){
@@ -120,7 +127,7 @@ class Project {
       }
     `;
     const data = await this._execute(projectFieldCount);
-    return data.data.node.fields.totalCount;
+    return data.node.fields.totalCount;
   }
 
   async getProjectFields() {
@@ -159,9 +166,9 @@ class Project {
           after: afterCursor,
         });
       }
-      afterCursor = data.data.node.fields.pageInfo.endCursor;
-      shouldContinue = data.data.node.fields.pageInfo.hasNextPage;
-      fields.push(...data.data.node.fields.nodes);
+      afterCursor = data.node.fields.pageInfo.endCursor;
+      shouldContinue = data.node.fields.pageInfo.hasNextPage;
+      fields.push(...data.node.fields.nodes);
     }
     fields.map((field) => {
       field.settings = JSON.parse(field.settings);
@@ -229,7 +236,7 @@ class Project {
       `;
 
       const data = await this._execute(projectItemCount);
-      return data.data.organization.projectNext.items.totalCount;
+      return data.organization.projectNext.items.totalCount;
     }
 
     const projectItemCount = `query projectFieldName($id: ID!){
@@ -240,7 +247,7 @@ class Project {
       }
     }`;
     const data = await this._execute(projectItemCount);
-    return data.data.node.items.totalCount;
+    return data.node.items.totalCount;
   }
 
   async getProjectItems() {
@@ -291,9 +298,9 @@ class Project {
           after: afterCursor,
         });
       }
-      afterCursor = data.data.node.items.pageInfo.endCursor;
-      shouldContinue = data.data.node.items.pageInfo.hasNextPage;
-      items.push(...data.data.node.items.nodes);
+      afterCursor = data.node.items.pageInfo.endCursor;
+      shouldContinue = data.node.items.pageInfo.hasNextPage;
+      items.push(...data.node.items.nodes);
     }
     return items;
   }
@@ -322,7 +329,7 @@ class Project {
       ids,
       first: 100,
     });
-    return data.data.nodes.map((node) => {
+    return data.nodes.map((node) => {
       return node.fieldValues.nodes;
     });
   }
@@ -412,9 +419,9 @@ class Project {
           after: afterCursor,
         });
       }
-      const edges = data.data.organization.projectNext.items.edges;
+      const edges = data.organization.projectNext.items.edges;
       afterCursor = edges[edges.length - 1].cursor;
-      items.push(...data.data.organization.projectNext.items.nodes);
+      items.push(...data.organization.projectNext.items.nodes);
     }
 
     return items;
