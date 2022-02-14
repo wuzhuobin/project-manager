@@ -150,6 +150,49 @@ describe("e2e", () => {
             // );
           }
         });
+
+        test("getAssignableFirst100Assignees", async () => {
+          const ids = [
+            "I_kwDOGPV02s4-eq_M",
+            "I_kwDOGPV02s49lDf-",
+            "I_kwDOGPV02s4-nM2-",
+            "I_kwDOGPV02s4-lfyG",
+          ];
+          const assigness = await project.getAssignableFirst100Assignees(ids);
+          expect(assigness).toEqual([
+            [],
+            [
+              {
+                name: "Ares.Zhao",
+                login: "AresZhaoLei",
+              },
+              {
+                name: "Linus Deng",
+                login: "amelonpie",
+              },
+            ],
+            [
+              {
+                name: "wuzhuobin",
+                login: "wuzhuobin",
+              },
+              {
+                name: null,
+                login: "ruixiaoli",
+              },
+            ],
+            [
+              {
+                name: "He Quan Liang",
+                login: "Stevenson-1320",
+              },
+              {
+                name: null,
+                login: "NickNingCH",
+              },
+            ],
+          ]);
+        });
       });
       describe(`useAxios=${useAxios}`, () => {
         const user = "wuzhuobin";
