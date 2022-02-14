@@ -382,4 +382,192 @@ describe("Render", () => {
     const rendering = Render.projectItemsBySprint(testSprintGroup);
     expect(rendering).toBeDefined();
   });
+
+  test("projectItemsByAssignee", () => {
+    const group = {
+      AresZhaoLei: {
+        name: "Ares.Zhao",
+        login: "AresZhaoLei",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4ABD7t",
+            title: "What is CMS(older version is PKCS #7)?",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s49lDf-",
+              number: 2,
+              url: "https://github.com/philips-internal/libscep/issues/2",
+              assignees: [
+                {
+                  name: "Ares.Zhao",
+                  login: "AresZhaoLei",
+                },
+                {
+                  name: "Linus Deng",
+                  login: "amelonpie",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 4,
+      },
+      amelonpie: {
+        name: "Linus Deng",
+        login: "amelonpie",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4ABD7t",
+            title: "What is CMS(older version is PKCS #7)?",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s49lDf-",
+              number: 2,
+              url: "https://github.com/philips-internal/libscep/issues/2",
+              assignees: [
+                {
+                  name: "Ares.Zhao",
+                  login: "AresZhaoLei",
+                },
+                {
+                  name: "Linus Deng",
+                  login: "amelonpie",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 10,
+      },
+      wuzhuobin: {
+        name: "wuzhuobin",
+        login: "wuzhuobin",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4AB5ll",
+            title: "Implement renew functions in scep",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s4-nM2-",
+              number: 21,
+              url: "https://github.com/philips-internal/libscep/issues/21",
+              assignees: [
+                {
+                  name: "wuzhuobin",
+                  login: "wuzhuobin",
+                },
+                {
+                  name: null,
+                  login: "ruixiaoli",
+                },
+              ],
+            },
+          },
+          {
+            id: "PNI_lADOA20Mnc0z2c4AB5o5",
+            title:
+              "component tests for demonstrating the GetCA->Enrolment->Renewal is working",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s4-nSEY",
+              number: 24,
+              url: "https://github.com/philips-internal/libscep/issues/24",
+              assignees: [
+                {
+                  name: "wuzhuobin",
+                  login: "wuzhuobin",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 14,
+      },
+      ruixiaoli: {
+        name: null,
+        login: "ruixiaoli",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4AB5ll",
+            title: "Implement renew functions in scep",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s4-nM2-",
+              number: 21,
+              url: "https://github.com/philips-internal/libscep/issues/21",
+              assignees: [
+                {
+                  name: "wuzhuobin",
+                  login: "wuzhuobin",
+                },
+                {
+                  name: null,
+                  login: "ruixiaoli",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 1,
+      },
+      "Stevenson-1320": {
+        name: "He Quan Liang",
+        login: "Stevenson-1320",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4AB4FM",
+            title: "Figure out a way to build the SecMgr easily",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s4-lfyG",
+              number: 20,
+              url: "https://github.com/philips-internal/libscep/issues/20",
+              assignees: [
+                {
+                  name: "He Quan Liang",
+                  login: "Stevenson-1320",
+                },
+                {
+                  name: null,
+                  login: "NickNingCH",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 1,
+      },
+      NickNingCH: {
+        name: null,
+        login: "NickNingCH",
+        items: [
+          {
+            id: "PNI_lADOA20Mnc0z2c4AB4FM",
+            title: "Figure out a way to build the SecMgr easily",
+            content: {
+              __typename: "Issue",
+              id: "I_kwDOGPV02s4-lfyG",
+              number: 20,
+              url: "https://github.com/philips-internal/libscep/issues/20",
+              assignees: [
+                {
+                  name: "He Quan Liang",
+                  login: "Stevenson-1320",
+                },
+                {
+                  name: null,
+                  login: "NickNingCH",
+                },
+              ],
+            },
+          },
+        ],
+        sumOfStoryPoint: 1,
+      },
+    };
+
+    const rendering = Render.projectItemsByAssignee(group);
+    console.log(rendering);
+    expect(rendering).toBeDefined();
+  });
 });
