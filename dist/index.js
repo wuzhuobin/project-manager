@@ -5,27 +5,12 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const axios = (__nccwpck_require__(6545)["default"]);
-
+const github = __nccwpck_require__(5438);
 class Project {
-  static URL = "https://api.github.com/graphql";
-
-  constructor(projectId, token) {
+  constructor(projectId, token, useAxios = false) {
     this.projectId = projectId;
-    if (token) {
-      this.githubApiConfig = {
-        headers: {
-          Authorization: `token ${token}`,
-          "Content-Type": "application/json",
-        },
-      };
-    } else {
-      this.githubApiConfig = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-    }
-
+    this.token = token;
+    this.useAxios = useAxios;
     this.storyPoint = "Story Point";
     this.status = "Status";
     this.sprint = "Sprint";
@@ -50,11 +35,7 @@ class Project {
   }
 
   setToken(token) {
-    if (token) {
-      this.githubApiConfig.headers.Authorization = `token ${token}`;
-    } else {
-      this.githubApiConfig.headers = { "Content-Type": "application/json" };
-    }
+    this.token = token;
   }
 
   setStoryPoint(storyPoint) {
@@ -76,16 +57,31 @@ class Project {
       id: this.projectId,
     };
     variables = { ...defaultVariables, ...variables };
-    const data = JSON.stringify({
-      query,
-      variables,
-    });
-    const respose = await axios.post(Project.URL, data, this.githubApiConfig);
-    if (respose.data.errors) {
-      const message = JSON.stringify(respose.data.errors, null, 2);
-      throw new Error(message);
+
+    let result;
+    if (this.useAxios) {
+      const data = JSON.stringify({
+        query,
+        variables,
+      });
+
+      const url = "https://api.github.com/graphql";
+      const respose = await axios.post(url, data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: this.token ? `token ${this.token}` : undefined,
+        },
+      });
+      if (respose.data.errors) {
+        const message = JSON.stringify(respose.data.errors, null, 2);
+        throw new Error(message);
+      }
+      result = respose.data.data;
+    } else {
+      const octokit = github.getOctokit(this.token || "");
+      result = await octokit.graphql(query, variables);
     }
-    return respose.data;
+    return result;
   }
 
   async getProjectId() {
@@ -99,8 +95,7 @@ class Project {
       }
     `;
     const data = await this._execute(projectIds);
-    return data.data[this.organization ? "organization" : "user"].projectNext
-      .id;
+    return data[this.organization ? "organization" : "user"].projectNext.id;
   }
 
   async getProjectFieldCount() {
@@ -120,7 +115,7 @@ class Project {
           }
         }`;
       const data = await this._execute(projectFieldCount);
-      return data.data.organization.projectNext.fields.totalCount;
+      return data.organization.projectNext.fields.totalCount;
     }
     const projectFieldCount = `
       query projectFieldCount($id: ID!){
@@ -132,7 +127,7 @@ class Project {
       }
     `;
     const data = await this._execute(projectFieldCount);
-    return data.data.node.fields.totalCount;
+    return data.node.fields.totalCount;
   }
 
   async getProjectFields() {
@@ -171,9 +166,9 @@ class Project {
           after: afterCursor,
         });
       }
-      afterCursor = data.data.node.fields.pageInfo.endCursor;
-      shouldContinue = data.data.node.fields.pageInfo.hasNextPage;
-      fields.push(...data.data.node.fields.nodes);
+      afterCursor = data.node.fields.pageInfo.endCursor;
+      shouldContinue = data.node.fields.pageInfo.hasNextPage;
+      fields.push(...data.node.fields.nodes);
     }
     fields.map((field) => {
       field.settings = JSON.parse(field.settings);
@@ -222,6 +217,13 @@ class Project {
     return group;
   }
 
+  static makeItemsWithAssignees(items, assignees) {
+    return items.map((item, index) => {
+      item.content.assignees = assignees[index];
+      return item;
+    });
+  }
+
   async getProjectItemCount() {
     // legacy
     const itemsCount = `
@@ -241,7 +243,7 @@ class Project {
       `;
 
       const data = await this._execute(projectItemCount);
-      return data.data.organization.projectNext.items.totalCount;
+      return data.organization.projectNext.items.totalCount;
     }
 
     const projectItemCount = `query projectFieldName($id: ID!){
@@ -252,7 +254,7 @@ class Project {
       }
     }`;
     const data = await this._execute(projectItemCount);
-    return data.data.node.items.totalCount;
+    return data.node.items.totalCount;
   }
 
   async getProjectItems() {
@@ -303,15 +305,16 @@ class Project {
           after: afterCursor,
         });
       }
-      afterCursor = data.data.node.items.pageInfo.endCursor;
-      shouldContinue = data.data.node.items.pageInfo.hasNextPage;
-      items.push(...data.data.node.items.nodes);
+      afterCursor = data.node.items.pageInfo.endCursor;
+      shouldContinue = data.node.items.pageInfo.hasNextPage;
+      items.push(...data.node.items.nodes);
     }
     return items;
   }
 
-  async get100ProjectItemFieldValuesOfItemsByIds(ids) {
-    const projectItemFieldValuesOfItemsByIds = `query projectItemFieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
+  async getProjectItemFirst100FieldValuesOfItemsByIds(ids) {
+    const projectItemFirst100FieldValuesOfItemsByIds = `
+      query projectItemFirst100FieldValuesOfItemsByIds($ids: [ID!]! $first: Int!)
       {
         nodes(ids: $ids)
         {
@@ -329,17 +332,42 @@ class Project {
         }
       }`;
 
-    const data = await this._execute(projectItemFieldValuesOfItemsByIds, {
-      ids,
-      first: 100,
-    });
-    return data.data.nodes.map((node) => {
+    const data = await this._execute(
+      projectItemFirst100FieldValuesOfItemsByIds,
+      {
+        ids,
+        first: 100,
+      }
+    );
+    return data.nodes.map((node) => {
       return node.fieldValues.nodes;
     });
   }
 
-  groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup) {
-    for (let item of itemsFieldValuesWithId) {
+  async getAssignableFirst100Assignees(ids) {
+    const assignableFirst100Assignees = `
+      query getAssignableFirst100Assignees($ids: [ID!]! $first: Int!) {
+        nodes(ids: $ids) {
+          ... on Assignable {
+            assignees(first: $first) {
+              nodes{
+                name
+                login
+              }
+            }
+          }
+        }
+      }
+    `;
+    const data = await this._execute(assignableFirst100Assignees, {
+      ids,
+      first: 100,
+    });
+    return data.nodes.map((node) => node.assignees.nodes);
+  }
+
+  groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
+    for (let item of itemsFieldValues) {
       const statusField = item.fieldValues.find(
         (fieldValue) => fieldValue.projectField.name === this.status
       );
@@ -350,8 +378,8 @@ class Project {
     return statusGroup;
   }
 
-  groupProjectItemsBySprint(itemsFieldValuesWithId, sprintGroup) {
-    for (let item of itemsFieldValuesWithId) {
+  groupProjectItemsBySprint(itemsFieldValues, sprintGroup) {
+    for (let item of itemsFieldValues) {
       const sprintField = item.fieldValues.find(
         (fieldValue) => fieldValue.projectField.name === this.sprint
       );
@@ -363,6 +391,41 @@ class Project {
         }
       }
     }
+  }
+
+  groupProjectItemsByAssignee(itemsWithAssignees) {
+    let assigneesStr = itemsWithAssignees
+      .map((item) => item.content.assignees)
+      .reduce((acc, assignee) => acc.concat(...assignee))
+      .map((assignee) => JSON.stringify(assignee));
+    const set = [...new Set(assigneesStr)].map((assignee) =>
+      JSON.parse(assignee)
+    );
+    const group = {};
+    for (let assignee of set) {
+      group[assignee.login] = assignee;
+      group[assignee.login].items = [];
+    }
+    for (let item of itemsWithAssignees) {
+      const assignees = item.content.assignees;
+      for (let assignee of assignees) {
+        group[assignee.login].items.push(item);
+      }
+    }
+    return group;
+  }
+
+  sumOfStoryPointByItemsFieldValues(itemsFieldValues) {
+    let sumOfStoryPoint = 0;
+    for (let item of itemsFieldValues) {
+      const storyPointsField = item.fieldValues.find(
+        (fieldValue) => fieldValue.projectField.name === this.storyPoint
+      );
+      if (storyPointsField) {
+        sumOfStoryPoint += parseInt(storyPointsField.value);
+      }
+    }
+    return sumOfStoryPoint;
   }
 
   async getProjectItemsLegacy() {
@@ -410,9 +473,9 @@ class Project {
           after: afterCursor,
         });
       }
-      const edges = data.data.organization.projectNext.items.edges;
+      const edges = data.organization.projectNext.items.edges;
       afterCursor = edges[edges.length - 1].cursor;
-      items.push(...data.data.organization.projectNext.items.nodes);
+      items.push(...data.organization.projectNext.items.nodes);
     }
 
     return items;
@@ -428,34 +491,106 @@ module.exports = Project;
 /***/ ((module) => {
 
 const Render = {
+  projectItemsBySprint: function (sprintGroup) {
+    function group(group, groupName) {
+      const length = Object.keys(group).length;
+      let groupHtml;
+      if (length === 0) {
+        groupHtml = `<th rowspan="1">${groupName}</th><td></td><td></td><td></td><td></td>`;
+      } else {
+        groupHtml = Object.entries(group)
+          .map(([, sprint], index) => {
+            return `<tr>
+            ${
+              index === 0
+                ? `<th rowspan="${length}">${groupName}</th>`
+                : "<br/>"
+            }
+            <td>${sprint.title}</td>
+            <td>${sprint.items.length}</td>
+            <td>${sprint.sumOfStoryPoint}</td>
+            <td>${sprint.items
+              .map(
+                (item) =>
+                  `<a href="${item.content.url}">#${item.content.number}</a>`
+              )
+              .join("<br/>")}</td>
+        </tr>`;
+          })
+          .join("\n");
+      }
+      return groupHtml;
+    }
+
+    let rendering = `<table>
+        <tbody>
+            <tr>
+                <th colspan="2">Sprint</th>
+                <th>Total Number</th>
+                <th>Total Story Point</th>
+                <th>Items</th>
+            </tr>
+            ${group(sprintGroup.iterations, "Iterating")}
+            ${group(sprintGroup.completedIterations, "Completed")}
+        </tbody>
+    </table>`;
+    return rendering;
+  },
   projectItemsByStatus: function (statusGroup) {
-    let tbody = "";
+    let content = "";
     for (const status in statusGroup) {
-      let items = statusGroup[status].items
-        .map(
-          (item) => `<a href="${item.content.url}">#${item.content.number}</a>`
-        )
-        .join("<br/>");
-      tbody += `<tr>
-    <td>${statusGroup[status].name}</td>
-    <td>${statusGroup[status].items.length}</td>
-    <td>?</td>
-    <td>${items}</td>
-</tr>`;
+      content += `<tr>
+          <td>${statusGroup[status].name}</td>
+          <td>${statusGroup[status].items.length}</td>
+          <td>${statusGroup[status].sumOfStoryPoint}</td>
+          <td>${statusGroup[status].items
+            .map(
+              (item) =>
+                `<a href="${item.content.url}">#${item.content.number}</a>`
+            )
+            .join("<br/>")}</td>
+      </tr>`;
     }
     let rendering = `<table>
-    <thead>
-        <tr>
-            <th>Status</th>
-            <th>Total Number</th>
-            <th>Total Story Point</th>
-            <th>Items</th>
-        </tr>
-    </thead>
-    <tbody>
-        ${tbody}
-    </tbody>
-</table>`;
+        <tbody>
+            <tr>
+                <th>Status</th>
+                <th>Total Number</th>
+                <th>Total Story Point</th>
+                <th>Items</th>
+            </tr>
+            ${content}
+        </tbody>
+    </table>`;
+    return rendering;
+  },
+  projectItemsByAssignee: function (assigneeGroup) {
+    let content = "";
+    for (const assignee in assigneeGroup) {
+      const name = assigneeGroup[assignee].name;
+      content += `<tr>
+          <td>@${assignee} ${name && `(${name})`}</td>
+          <td>${assigneeGroup[assignee].items.length}</td>
+          <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
+          <td>${assigneeGroup[assignee].items
+            .map(
+              (item) =>
+                `<a href="${item.content.url}">#${item.content.number}</a>`
+            )
+            .join("<br/>")}</td>
+      </tr>`;
+    }
+    let rendering = `<table>
+        <tbody>
+            <tr>
+                <th>Assignee</th>
+                <th>Total Number</th>
+                <th>Total Story Point</th>
+                <th>Items</th>
+            </tr>
+            ${content}
+        </tbody>
+    <table>`;
     return rendering;
   },
 };
@@ -13202,8 +13337,8 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
   const projectId = core.getInput("projectId");
   core.notice("projectId: " + projectId);
-
   const token = core.getInput("token");
+
   const project = new Project(projectId, token);
   if (organization) {
     project.setOrignization(organization);
@@ -13217,37 +13352,68 @@ async function run() {
   }
 
   const fields = await project.getProjectFields();
-  const statusGroup = project.makeStatusGroup(fields);
 
   const items = await project.getProjectItems();
   const itemsGroupPer100 = Util.arrayToEvery100Arrays(items);
-  const itemsFieldValuesWithIdGroupsPer100 = await Promise.all(
+  const itemsFieldValuesGroupsPer100 = await Promise.all(
     itemsGroupPer100.map(async (items) => {
       const ids = items.map((item) => item.id);
-      const itemsFieldValues =
-        await project.get100ProjectItemFieldValuesOfItemsByIds(ids);
-      const itemsFieldValuesWithId = items.map((item, index) => {
+      const fieldValuesArray =
+        await project.getProjectItemFirst100FieldValuesOfItemsByIds(ids);
+      const itemsFieldValues = items.map((item, index) => {
         return {
           ...item,
-          fieldValues: itemsFieldValues[index],
+          fieldValues: fieldValuesArray[index],
         };
       });
-      return itemsFieldValuesWithId;
+      return itemsFieldValues;
     })
   );
-  core.info(itemsFieldValuesWithIdGroupsPer100);
-  const itemsFieldValuesWithId = itemsFieldValuesWithIdGroupsPer100.reduce(
+  const itemsFieldValues = itemsFieldValuesGroupsPer100.reduce(
     (previousValue, currentValue) => {
-      core.info(previousValue);
       return previousValue.concat(currentValue);
     }
   );
 
-  project.groupProjectItemsByStatus(itemsFieldValuesWithId, statusGroup);
+  const statusGroup = project.makeStatusGroup(fields);
+  project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
+  for (const status in statusGroup) {
+    statusGroup[status].sumOfStoryPoint =
+      project.sumOfStoryPointByItemsFieldValues(statusGroup[status].items);
+  }
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
+  core.setOutput("statusGroupHtml", statusGroupHtml);
+
+  const sprintGroup = project.makeSprintGroup(fields);
+  project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
+  for (const group in sprintGroup) {
+    for (const sprint in sprintGroup[group]) {
+      sprintGroup[group][sprint].sumOfStoryPoint =
+        project.sumOfStoryPointByItemsFieldValues(
+          sprintGroup[group][sprint].items
+        );
+    }
+  }
+
+  const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
+  core.setOutput("sprintGroupHtml", sprintGroupHtml);
+
+  const assignees = await project.getAssignableFirst100Assignees(
+    items.map((item) => item.content.id)
+  );
+  const itemsWithAssignees = Project.makeItemsWithAssignees(
+    itemsFieldValues,
+    assignees
+  );
+  const assigneeGroup = project.groupProjectItemsByAssignee(itemsWithAssignees);
+  for (const assignee in assigneeGroup) {
+    assigneeGroup[assignee].sumOfStoryPoint =
+      project.sumOfStoryPointByItemsFieldValues(assigneeGroup[assignee].items);
+  }
+  const assigneeGroupHtml = Render.projectItemsByAssignee(assigneeGroup);
+  core.setOutput("assigneeGroupHtml", assigneeGroupHtml);
 
   core.setOutput("isSuccess", true);
-  core.setOutput("statusGroupHtml", statusGroupHtml);
 
   const payload = JSON.stringify(github.context.payload, undefined, 2);
   console.log(`The event payload: ${payload}`);
