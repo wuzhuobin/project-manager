@@ -346,7 +346,7 @@ class Project {
 
   async getAssignableFirst100Assignees(ids) {
     const assignableFirst100Assignees = `
-      query getAssignableFirst100Assignees($ids: [ID!]! $first: Int!) {
+      query assignableFirst100Assignees($ids: [ID!]! $first: Int!) {
         nodes(ids: $ids) {
           ... on Assignable {
             assignees(first: $first) {
@@ -359,11 +359,19 @@ class Project {
         }
       }
     `;
-    const data = await this._execute(assignableFirst100Assignees, {
-      ids,
-      first: 100,
-    });
-    return data.nodes.map((node) => node.assignees.nodes);
+    let assignees = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const subIds = ids.slice(i, i + 100);
+      const data = await this._execute(assignableFirst100Assignees, {
+        ids: subIds,
+        first: 100,
+      });
+
+      assignees = assignees.concat(
+        data.nodes.map((node) => node.assignees.nodes)
+      );
+    }
+    return assignees;
   }
 
   groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
