@@ -30,3 +30,4 @@ jobs:
           body: |-
             ${{steps.projectTest.outputs.statusGroupHtml}}
             ${{steps.projectTest.outputs.sprintGroupHtml}}
+            ${{steps.projectTest.outputs.assigneeGroupHtml}}

@@ -398,7 +398,6 @@ class Project {
       .map((item) => item.content.assignees)
       .reduce((acc, assignee) => acc.concat(...assignee))
       .map((assignee) => JSON.stringify(assignee));
-    // assignees = assignees.map((assignee) => JSON.stringify(assignee));
     const set = [...new Set(assigneesStr)].map((assignee) =>
       JSON.parse(assignee)
     );
@@ -566,7 +565,7 @@ const Render = {
     return rendering;
   },
   projectItemsByAssignee: function (assigneeGroup) {
-    let content;
+    let content = "";
     for (const assignee in assigneeGroup) {
       const name = assigneeGroup[assignee].name;
       content += `<tr>
@@ -13338,8 +13337,8 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
   const projectId = core.getInput("projectId");
   core.notice("projectId: " + projectId);
-
   const token = core.getInput("token");
+
   const project = new Project(projectId, token);
   if (organization) {
     project.setOrignization(organization);
@@ -13395,8 +13394,24 @@ async function run() {
         );
     }
   }
+
   const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
   core.setOutput("sprintGroupHtml", sprintGroupHtml);
+
+  const assignees = await project.getAssignableFirst100Assignees(
+    items.map((item) => item.content.id)
+  );
+  const itemsWithAssignees = Project.makeItemsWithAssignees(
+    itemsFieldValues,
+    assignees
+  );
+  const assigneeGroup = project.groupProjectItemsByAssignee(itemsWithAssignees);
+  for (const assignee in assigneeGroup) {
+    assigneeGroup[assignee].sumOfStoryPoint =
+      project.sumOfStoryPointByItemsFieldValues(assigneeGroup[assignee].items);
+  }
+  const assigneeGroupHtml = Render.projectItemsByAssignee(assigneeGroup);
+  core.setOutput("assigneeGroupHtml", assigneeGroupHtml);
 
   core.setOutput("isSuccess", true);
 

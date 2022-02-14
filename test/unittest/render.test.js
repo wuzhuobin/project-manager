@@ -567,7 +567,6 @@ describe("Render", () => {
     };
 
     const rendering = Render.projectItemsByAssignee(group);
-    console.log(rendering);
     expect(rendering).toBeDefined();
   });
 });
