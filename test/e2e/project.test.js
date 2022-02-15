@@ -151,14 +151,14 @@ describe("e2e", () => {
           }
         });
 
-        test("getAssignableFirst100Assignees", async () => {
+        test("getAssignablesFirst100Assignees", async () => {
           const ids = [
             "I_kwDOGPV02s4-eq_M",
             "I_kwDOGPV02s49lDf-",
             "I_kwDOGPV02s4-nM2-",
             "I_kwDOGPV02s4-lfyG",
           ];
-          const assigness = await project.getAssignableFirst100Assignees(ids);
+          const assigness = await project.getAssignablesFirst100Assignees(ids);
           expect(assigness).toEqual([
             [],
             [
@@ -411,9 +411,9 @@ describe("e2e", () => {
           ]);
         });
 
-        test("getAssignableFirst100Assignees", async () => {
+        test("getAssignablesFirst100Assignees", async () => {
           const assignableIds = ["I_kwDOGubbrc5DDGUb", "I_kwDOGubbrc5DDGWs"];
-          const assigness = await project.getAssignableFirst100Assignees(
+          const assigness = await project.getAssignablesFirst100Assignees(
             assignableIds
           );
           expect(assigness).toEqual([
@@ -424,6 +424,20 @@ describe("e2e", () => {
               },
             ],
             [],
+          ]);
+        });
+
+        test("getCommnetsBody", async () => {
+          const commentIds = [
+            "I_kwDOGubbrc5DVETY",
+            "I_kwDOGubbrc5DVEpH",
+            "I_kwDOGubbrc5DVFzB",
+          ];
+          const bodies = await project.getCommentsBody(commentIds);
+          expect(bodies).toEqual([
+            "Test issue 6\r\n- [ ] #1 \r\n- [ ] #5 ",
+            "Test issue 7\r\n- [x] #4 \r\n- [ ] #5 ",
+            "Test issue 9\r\n\r\n- [x] #22 \r\n- [x] #4 ",
           ]);
         });
 

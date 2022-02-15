@@ -344,9 +344,9 @@ class Project {
     });
   }
 
-  async getAssignableFirst100Assignees(ids) {
-    const assignableFirst100Assignees = `
-      query assignableFirst100Assignees($ids: [ID!]! $first: Int!) {
+  async getAssignablesFirst100Assignees(ids) {
+    const assignablesFirst100Assignees = `
+      query assignablesFirst100Assignees($ids: [ID!]! $first: Int!) {
         nodes(ids: $ids) {
           ... on Assignable {
             assignees(first: $first) {
@@ -362,7 +362,7 @@ class Project {
     let assignees = [];
     for (let i = 0; i < ids.length; i += 100) {
       const subIds = ids.slice(i, i + 100);
-      const data = await this._execute(assignableFirst100Assignees, {
+      const data = await this._execute(assignablesFirst100Assignees, {
         ids: subIds,
         first: 100,
       });
@@ -372,6 +372,28 @@ class Project {
       );
     }
     return assignees;
+  }
+
+  async getCommentsBody(ids) {
+    const commentsBody = `
+      query commentsBody($ids: [ID!]!) {
+        nodes(ids: $ids) {
+          ... on Comment {
+            body
+          }
+        }
+      }
+    `;
+    let bodies = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const subIds = ids.slice(i, i + 100);
+      const data = await this._execute(commentsBody, {
+        ids: subIds,
+      });
+
+      bodies = bodies.concat(data.nodes.map((node) => node.body));
+    }
+    return bodies;
   }
 
   groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
@@ -13406,7 +13428,7 @@ async function run() {
   const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
   core.setOutput("sprintGroupHtml", sprintGroupHtml);
 
-  const assignees = await project.getAssignableFirst100Assignees(
+  const assignees = await project.getAssignablesFirst100Assignees(
     items.map((item) => item.content.id)
   );
   const itemsWithAssignees = Project.makeItemsWithAssignees(
