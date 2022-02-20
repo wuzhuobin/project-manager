@@ -236,7 +236,7 @@ describe("Project", () => {
   });
 
   test("makeItemsWithAssignees", () => {
-    const itemsWIthAssignees = Project.makeItemsWithAssignees(
+    const itemsWIthAssignees = project.makeItemsWithAssignees(
       testItems,
       testAssigness
     );
@@ -311,7 +311,7 @@ describe("Project", () => {
 
   test("makeItemsWithNumbersOfTrackingSubtasks", () => {
     const itemsWithNumbersOfTrackingSubtasks =
-      Project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
+      project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
         [2, 21], // 12
         [20], // 2
         [], // 21
@@ -346,7 +346,7 @@ describe("Project", () => {
   });
 
   test("groupProjectItemsByAssignee", () => {
-    const itemsWIthAssignees = Project.makeItemsWithAssignees(
+    const itemsWIthAssignees = project.makeItemsWithAssignees(
       testItems,
       testAssigness
     );
@@ -530,7 +530,7 @@ describe("Project", () => {
 
   test("groupProjectItemsByTrackingSubtasks", () => {
     const itemsWithNumbersOfTrackingSubtasks =
-      Project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
+      project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
         [2, 21], // 12
         [20], // 2
         [], // 21

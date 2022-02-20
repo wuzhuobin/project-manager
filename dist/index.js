@@ -217,14 +217,14 @@ class Project {
     return group;
   }
 
-  static makeItemsWithAssignees(items, assignees) {
+  makeItemsWithAssignees(items, assignees) {
     return items.map((item, index) => {
       item.content.assignees = assignees[index];
       return item;
     });
   }
 
-  static makeItemsWithNumbersOfTrackingSubtasks(items, numbersOfSubtasks) {
+  makeItemsWithNumbersOfTrackingSubtasks(items, numbersOfSubtasks) {
     return items.map((item, index) => {
       item.content.numbersOfTrackingSubtasks = numbersOfSubtasks[index];
       return item;
@@ -13416,7 +13416,7 @@ async function run() {
   const assignees = await project.getAssignablesFirst100Assignees(
     items.map((item) => item.content.id)
   );
-  const itemsWithAssignees = Project.makeItemsWithAssignees(
+  const itemsWithAssignees = project.makeItemsWithAssignees(
     itemsFieldValues,
     assignees
   );
