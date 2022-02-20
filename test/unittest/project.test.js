@@ -480,4 +480,16 @@ describe("Project", () => {
       },
     });
   });
+
+  test("extractNumbersOfTrackingSubtasksFromBody() should return expected array", () => {
+    const body = "Test issue 6\r\n- [x] #1 \r\n- [ ] #5 [X] #191";
+    const numbers = project.extractNumbersOfTrackingSubtasksFromBody(body);
+    expect(numbers).toEqual([1, 5, 191]);
+  });
+
+  test("extractNumbersOfTrackingSubtasksFromBody should return emptry array when there is no sub tasks", () => {
+    const body = "Test issue 6\r\n- [x ] #1 \r\n- [ ] #a5 [s] #191";
+    const numbers = project.extractNumbersOfTrackingSubtasksFromBody(body);
+    expect(numbers).toHaveLength(0);
+  });
 });
