@@ -13414,21 +13414,41 @@ async function run() {
     }
   );
 
+  const commentIds = items.map((item) => item.content.id);
+  const bodies = await project.getCommentsBody(commentIds);
+  const numbers = bodies.map((body) =>
+    project.extractNumbersOfTrackingSubtasksFromBody(body)
+  );
+  const itemsFieldvaluesWithNumbersOfTrackingSubtasks =
+    project.makeItemsWithNumbersOfTrackingSubtasks(itemsFieldValues, numbers);
+  const itemsFieldvaluesWithTrackingSubtasks =
+    project.groupProjectItemsByTrackingSubtasks(
+      itemsFieldvaluesWithNumbersOfTrackingSubtasks
+    );
+
   const statusGroup = project.makeStatusGroup(fields);
-  project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
+  project.groupProjectItemsByStatus(
+    itemsFieldvaluesWithTrackingSubtasks,
+    statusGroup
+  );
   for (const status in statusGroup) {
     statusGroup[status].sumOfStoryPoint =
-      project.sumOfStoryPointByItemsFieldValues(statusGroup[status].items);
+      project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+        statusGroup[status].items
+      );
   }
   const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
   core.setOutput("statusGroupHtml", statusGroupHtml);
 
   const sprintGroup = project.makeSprintGroup(fields);
-  project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
+  project.groupProjectItemsBySprint(
+    itemsFieldvaluesWithTrackingSubtasks,
+    sprintGroup
+  );
   for (const group in sprintGroup) {
     for (const sprint in sprintGroup[group]) {
       sprintGroup[group][sprint].sumOfStoryPoint =
-        project.sumOfStoryPointByItemsFieldValues(
+        project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
           sprintGroup[group][sprint].items
         );
     }
@@ -13441,13 +13461,15 @@ async function run() {
     items.map((item) => item.content.id)
   );
   const itemsWithAssignees = project.makeItemsWithAssignees(
-    itemsFieldValues,
+    itemsFieldvaluesWithTrackingSubtasks,
     assignees
   );
   const assigneeGroup = project.groupProjectItemsByAssignee(itemsWithAssignees);
   for (const assignee in assigneeGroup) {
     assigneeGroup[assignee].sumOfStoryPoint =
-      project.sumOfStoryPointByItemsFieldValues(assigneeGroup[assignee].items);
+      project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+        assigneeGroup[assignee].items
+      );
   }
   const assigneeGroupHtml = Render.projectItemsByAssignee(assigneeGroup);
   core.setOutput("assigneeGroupHtml", assigneeGroupHtml);
