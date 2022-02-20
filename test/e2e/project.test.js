@@ -459,6 +459,42 @@ describe("e2e", () => {
           expect(sumOfStoryPoint).toBe(47);
         });
 
+        test("sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks", async () => {
+          const items = await (
+            await project.getProjectItems()
+          ).filter((id, index) => index < 100);
+          const itemIds = items.map((item) => item.id);
+          const fieldValuesArray =
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(
+              itemIds
+            );
+          const itemsFieldValues = items.map((item, index) => {
+            return {
+              ...item,
+              fieldValues: fieldValuesArray[index],
+            };
+          });
+          const commentIds = items.map((item) => item.content.id);
+          const bodies = await project.getCommentsBody(commentIds);
+          const numbers = bodies.map((body) =>
+            project.extractNumbersOfTrackingSubtasksFromBody(body)
+          );
+          const itemsFieldvaluesWithNumbersOfTrackingSubtasks =
+            project.makeItemsWithNumbersOfTrackingSubtasks(
+              itemsFieldValues,
+              numbers
+            );
+          const itemsFieldvaluesWithTrackingSubtasks =
+            project.groupProjectItemsByTrackingSubtasks(
+              itemsFieldvaluesWithNumbersOfTrackingSubtasks
+            );
+          const sumOfStoryPoint =
+            project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+              itemsFieldvaluesWithTrackingSubtasks
+            );
+          expect(sumOfStoryPoint).toBe(53);
+        });
+
         test("groupProjectItemsByStatus", async () => {
           const fields = await project.getProjectFields();
           const group = project.makeStatusGroup(fields);
