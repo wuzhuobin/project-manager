@@ -224,6 +224,13 @@ class Project {
     });
   }
 
+  static makeItemsWithNumbersOfTrackingSubtasks(items, numbersOfSubtasks) {
+    return items.map((item, index) => {
+      item.content.numbersOfTrackingSubtasks = numbersOfSubtasks[index];
+      return item;
+    });
+  }
+
   async getProjectItemCount() {
     // legacy
     const itemsCount = `
@@ -445,6 +452,26 @@ class Project {
     return group;
   }
 
+  groupProjectItemsByTrackingSubtasks(itemsWithNumbersOfTrackingSubtasks) {
+    const subtasksSet = new Set();
+    for (let item of itemsWithNumbersOfTrackingSubtasks) {
+      item.content.trackingSubtasks = [];
+      for (let number of item.content.numbersOfTrackingSubtasks) {
+        subtasksSet.add(number);
+        item.content.trackingSubtasks.push(
+          itemsWithNumbersOfTrackingSubtasks.find(
+            (item) => item.content.number === number
+          )
+        );
+      }
+    }
+    const itemsWithNumbersOfTrackingSubtasksFitered =
+      itemsWithNumbersOfTrackingSubtasks.filter(
+        (item) => !subtasksSet.has(item.content.number)
+      );
+    return itemsWithNumbersOfTrackingSubtasksFitered;
+  }
+
   sumOfStoryPointByItemsFieldValues(itemsFieldValues) {
     let sumOfStoryPoint = 0;
     for (let item of itemsFieldValues) {
@@ -467,59 +494,6 @@ class Project {
     const numbers = matches.map((match) => parseInt(match.match(/\d+/)[0]));
 
     return numbers;
-  }
-
-  async getProjectItemsLegacy() {
-    const projectItems = (
-      noAfter = true
-    ) => `query projectItems($login: String! $number: Int! $first: Int! ${
-      noAfter ? "" : "$after: String!"
-    }){
-        ${this.organization ? "organization" : "user"}(login: $login){
-          projectNext(number: $number) {
-            items(first: $first ${noAfter ? "" : "after: $after"}) {
-              edges {
-                cursor
-              }
-              nodes {
-                id
-                title
-                content {
-                  __typename
-                  ... on Issue {
-                    id
-                  }
-                  ... on PullRequest {
-                    id
-                  }
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-    const items = [];
-    let afterCursor = null;
-    const count = await this.getProjectItemCount();
-    for (let i = 0; i < count; i += 100) {
-      let data = null;
-      if (afterCursor === null) {
-        data = await this._execute(projectItems(), {
-          first: 100,
-        });
-      } else {
-        data = await this._execute(projectItems(false), {
-          first: 100,
-          after: afterCursor,
-        });
-      }
-      const edges = data.organization.projectNext.items.edges;
-      afterCursor = edges[edges.length - 1].cursor;
-      items.push(...data.organization.projectNext.items.nodes);
-    }
-
-    return items;
   }
 }
 

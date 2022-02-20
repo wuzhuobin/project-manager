@@ -298,6 +298,42 @@ describe("Project", () => {
     ]);
   });
 
+  test("makeItemsWithNumbersOfTrackingSubtasks", () => {
+    const itemsWithNumbersOfTrackingSubtasks =
+      Project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
+        [2, 21], // 12
+        [20], // 2
+        [], // 21
+        [], //20
+        [], // 24
+      ]);
+    expect(itemsWithNumbersOfTrackingSubtasks[0]).toHaveProperty(
+      "content",
+      "numbersOfTrackingSubtasks",
+      [2, 21]
+    );
+    expect(itemsWithNumbersOfTrackingSubtasks[1]).toHaveProperty(
+      "content",
+      "numbersOfTrackingSubtasks",
+      [20]
+    );
+    expect(itemsWithNumbersOfTrackingSubtasks[2]).toHaveProperty(
+      "content",
+      "numbersOfTrackingSubtasks",
+      []
+    );
+    expect(itemsWithNumbersOfTrackingSubtasks[3]).toHaveProperty(
+      "content",
+      "numbersOfTrackingSubtasks",
+      []
+    );
+    expect(itemsWithNumbersOfTrackingSubtasks[4]).toHaveProperty(
+      "content",
+      "numbersOfTrackingSubtasks",
+      []
+    );
+  });
+
   test("groupProjectItemsByAssignee", () => {
     const itemsWIthAssignees = Project.makeItemsWithAssignees(
       testItems,
@@ -479,6 +515,42 @@ describe("Project", () => {
         ],
       },
     });
+  });
+
+  test("groupProjectItemsByTrackingSubtasks", () => {
+    const itemsWithNumbersOfTrackingSubtasks =
+      Project.makeItemsWithNumbersOfTrackingSubtasks(testItems, [
+        [2, 21], // 12
+        [20], // 2
+        [], // 21
+        [], //20
+        [], // 24
+      ]);
+
+    const itemsWithNumbersOfTrackingSubtasksCopied = JSON.parse(
+      JSON.stringify(itemsWithNumbersOfTrackingSubtasks)
+    );
+
+    itemsWithNumbersOfTrackingSubtasksCopied[0].content.trackingSubtasks = [
+      itemsWithNumbersOfTrackingSubtasksCopied[1],
+      itemsWithNumbersOfTrackingSubtasksCopied[2],
+    ];
+    itemsWithNumbersOfTrackingSubtasksCopied[1].content.trackingSubtasks = [
+      itemsWithNumbersOfTrackingSubtasksCopied[3],
+    ];
+    itemsWithNumbersOfTrackingSubtasksCopied[2].content.trackingSubtasks = [];
+    itemsWithNumbersOfTrackingSubtasksCopied[3].content.trackingSubtasks = [];
+    itemsWithNumbersOfTrackingSubtasksCopied[4].content.trackingSubtasks = [];
+    const expectedGroup = [
+      itemsWithNumbersOfTrackingSubtasksCopied[0],
+      itemsWithNumbersOfTrackingSubtasksCopied[4],
+    ];
+
+    const group = project.groupProjectItemsByTrackingSubtasks(
+      itemsWithNumbersOfTrackingSubtasks
+    );
+
+    expect(group).toEqual(expectedGroup);
   });
 
   test("extractNumbersOfTrackingSubtasksFromBody() should return expected array", () => {
