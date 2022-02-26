@@ -19,15 +19,53 @@ jobs:
           projectNumber: 1
           token: ${{secrets.TEST}}
 
-      - name: print
-        run: echo "The last action result is ${{steps.projectTest.outputs.isSuccess}}." && echo "${{steps.projectTest.outputs.statusGroupHtml}}"
+      - name: Today's date
+        run: echo "TODAY=$(date '+%Y-%m-%d') (UTC)" >> ${{github.env}}
+
+      # - name: test
+      #   # if: ${{false}}
+      #   uses: imjohnbo/issue-bot@v3
+      #   with:
+      #     title: test
+      #     body: |-
+      #       ## statusGroupHtml
+      #       ${{steps.projectTest.outputs.statusGroupHtml}}
+
+      #       ## statusGroupWithSprintGroupHtml
+      #       ${{steps.projectTest.outputs.statusGroupWithSprintGroupHtml}}
+
+      #       ## sprintGroupHtml
+      #       ${{steps.projectTest.outputs.sprintGroupHtml}}
+
+      #       ## assigneeGroupHtml
+      #       ${{steps.projectTest.outputs.assigneeGroupHtml}}
+
+      #     pinned: true
+      #     close-previous: true
+      #     linked-comments: true
 
       - name: test
-        # if: ${{false}}
         uses: imjohnbo/issue-bot@v3
         with:
+          assignees: "wuzhuobin"
+          labels: "test"
           title: test
           body: |-
+            :wave: Hi, {{#each assignees}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}!
+            ## test for ${{ env.TODAY }}
+
+            ## statusGroupHtml
             ${{steps.projectTest.outputs.statusGroupHtml}}
+
+            ## statusGroupWithSprintGroupHtml
+            ${{steps.projectTest.outputs.statusGroupWithSprintGroupHtml}}
+
+            ## sprintGroupHtml
             ${{steps.projectTest.outputs.sprintGroupHtml}}
+
+            ## assigneeGroupHtml
             ${{steps.projectTest.outputs.assigneeGroupHtml}}
+
+          pinned: true
+          close-previous: true
+          linked-comments: true

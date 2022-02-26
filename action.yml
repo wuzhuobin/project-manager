@@ -20,6 +20,8 @@ outputs:
     description: "Is success?"
   statusGroupHtml:
     description: "Status group in html."
+  statusGroupWithSprintGroupHtml:
+    description: "Status group with sprint group in html."
   sprintGroupHtml:
     description: "sprint group in html."
   assigneeGroupHtml:
