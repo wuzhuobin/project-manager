@@ -533,6 +533,12 @@ function itemToLink(item) {
   return `<a href="${item.content.url}">#${item.content.number}</a>`;
 }
 
+function itemsToUnorderList(items) {
+  return `<ul>
+    ${items.map((item) => `<li>${itemToLink(item)}</li>`).join("\n")}
+  </ul>`;
+}
+
 const FIX_HEADER =
   "<th>Total Number</th><th>Total Story Point</th><th>Items</th>";
 function renderingTable(header, body) {
@@ -561,9 +567,7 @@ function projectItemsBySprint(sprintGroup) {
             <td>${sprint.title}</td>
             <td>${sprint.items.length}</td>
             <td>${sprint.sumOfStoryPoint}</td>
-            <td>${sprint.items
-              .map((item) => itemToLink(item))
-              .join("<br/>")}</td>
+            <td>${itemsToUnorderList(sprint.items)}</td>
         </tr>`;
         })
         .join("\n");
@@ -587,9 +591,7 @@ function projectItemsByStatus(statusGroup) {
           <td>${statusGroup[status].name}</td>
           <td>${statusGroup[status].items.length}</td>
           <td>${statusGroup[status].sumOfStoryPoint}</td>
-          <td>${statusGroup[status].items
-            .map((item) => itemToLink(item))
-            .join("<br/>")}</td>
+          <td>${itemsToUnorderList(statusGroup[status].items)}</td>
       </tr>`;
   }
   return renderingTable(
@@ -623,9 +625,7 @@ function projectItemsByStatusWithSprintGroup(statusGroup) {
           ${sprintGroupHtml}
           <td>${statusGroup[status].items.length}</td>
           <td>${statusGroup[status].sumOfStoryPoint}</td>
-          <td>${statusGroup[status].items
-            .map((item) => itemToLink(item))
-            .join("<br/>")}</td>
+          <td>${itemsToUnorderList(statusGroup[status].items)}</td>
       </tr>`;
   }
   return renderingTable(
@@ -670,9 +670,7 @@ function projectItemsByAssignee(assigneeGroup) {
           <td>@${assignee} ${name && `(${name})`}</td>
           <td>${assigneeGroup[assignee].items.length}</td>
           <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
-          <td>${assigneeGroup[assignee].items
-            .map((item) => itemToLink(item))
-            .join("<br/>")}</td>
+          <td>${itemsToUnorderList(assigneeGroup[assignee].items)}</td>
       </tr>`;
   }
   return renderingTable(
