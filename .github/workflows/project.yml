@@ -32,17 +32,20 @@ jobs:
             :wave: Hi, {{#each assignees}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}!
             ## test for ${{ env.NOW }}
 
+            ## sprintGroupHtml
+            ${{steps.projectTest.outputs.sprintGroupHtml}}
+
             ## statusGroupHtml
             ${{steps.projectTest.outputs.statusGroupHtml}}
 
             ## statusGroupWithSprintGroupHtml
             ${{steps.projectTest.outputs.statusGroupWithSprintGroupHtml}}
 
-            ## sprintGroupHtml
-            ${{steps.projectTest.outputs.sprintGroupHtml}}
-
             ## assigneeGroupHtml
             ${{steps.projectTest.outputs.assigneeGroupHtml}}
+
+            ## assigneeGroupWithSprintGroupHtml
+            ${{steps.projectTest.outputs.assigneeGroupWithSprintGroupHtml}}
 
           pinned: true
           close-previous: true

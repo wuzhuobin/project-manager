@@ -549,6 +549,7 @@ function renderingTable(header, body) {
         </tbody>
     </table>`;
 }
+
 function projectItemsBySprint(sprintGroup) {
   function group(group, groupName) {
     const length = Object.keys(group).length;
@@ -584,14 +585,19 @@ function projectItemsBySprint(sprintGroup) {
      ${group(sprintGroup.completedIterations, "Completed")}`
   );
 }
-function projectItemsByStatus(statusGroup) {
+
+function projectItemsByStatus(statusGroup, withSprintGroup = false) {
   let body = "";
   for (const status in statusGroup) {
     body += `<tr>
           <td>${statusGroup[status].name}</td>
           <td>${statusGroup[status].items.length}</td>
           <td>${statusGroup[status].sumOfStoryPoint}</td>
-          <td>${itemsToUnorderList(statusGroup[status].items)}</td>
+          <td>${
+            withSprintGroup
+              ? itemsToUnorderList(statusGroup[status].items)
+              : projectItemsBySprint(statusGroup[status].sprintGroup)
+          }</td>
       </tr>`;
   }
   return renderingTable(
@@ -602,6 +608,7 @@ function projectItemsByStatus(statusGroup) {
     `${body}`
   );
 }
+
 function projectItemsByStatusWithSprintGroup(statusGroup) {
   let body = "";
   let statusGroupHeader = "";
@@ -637,32 +644,8 @@ function projectItemsByStatusWithSprintGroup(statusGroup) {
     `${body}`
   );
 }
-function projectItemsByStatusWithSprintGroupFull(statusGroup) {
-  let body = "";
-  for (const status in statusGroup) {
-    const sprintGroupHtml = projectItemsBySprint(
-      statusGroup[status].sprintGroup
-    );
-    body += `<tr>
-          <td>${statusGroup[status].name}</td>
-          <td>${sprintGroupHtml}</td>
-          <td>${statusGroup[status].items.length}</td>
-          <td>${statusGroup[status].sumOfStoryPoint}</td>
-          <td>${statusGroup[status].items
-            .map((item) => itemToLink(item))
-            .join("<br/>")}</td>
-      </tr>`;
-  }
-  return renderingTable(
-    `<tr>
-        <th>Status</th>
-        <th>Sprint</th>
-        ${FIX_HEADER}
-    </tr>`,
-    `${body}`
-  );
-}
-function projectItemsByAssignee(assigneeGroup) {
+
+function projectItemsByAssignee(assigneeGroup, withSprintGroup = false) {
   let body = "";
   for (const assignee in assigneeGroup) {
     const name = assigneeGroup[assignee].name;
@@ -670,7 +653,11 @@ function projectItemsByAssignee(assigneeGroup) {
           <td>@${assignee} ${name && `(${name})`}</td>
           <td>${assigneeGroup[assignee].items.length}</td>
           <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
-          <td>${itemsToUnorderList(assigneeGroup[assignee].items)}</td>
+          <td>${
+            withSprintGroup
+              ? itemsToUnorderList(assigneeGroup[assignee].items)
+              : projectItemsBySprint(assigneeGroup[assignee].sprintGroup)
+          }</td>
       </tr>`;
   }
   return renderingTable(
@@ -685,7 +672,6 @@ const Render = {
   projectItemsBySprint,
   projectItemsByStatus,
   projectItemsByStatusWithSprintGroup,
-  projectItemsByStatusWithSprintGroupFull,
   projectItemsByAssignee,
 };
 module.exports = Render;
@@ -13481,8 +13467,9 @@ async function run() {
       itemsFieldvaluesWithNumbersOfTrackingSubtasks
     );
 
-  const statusGroup = project.makeStatusGroup(fields);
   const sprintGroup = project.makeSprintGroup(fields);
+
+  const statusGroup = project.makeStatusGroup(fields);
   project.groupProjectItemsByStatus(
     itemsFieldvaluesWithTrackingSubtasks,
     statusGroup
@@ -13506,14 +13493,10 @@ async function run() {
         statusGroup[status].items
       );
   }
-  const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
-  core.setOutput("statusGroupHtml", statusGroupHtml);
-
-  const statusGroupWithSprintGroupHtml =
-    Render.projectItemsByStatusWithSprintGroup(statusGroup);
+  core.setOutput("statusGroupHtml", Render.projectItemsByStatus(statusGroup));
   core.setOutput(
     "statusGroupWithSprintGroupHtml",
-    statusGroupWithSprintGroupHtml
+    Render.projectItemsByStatus(statusGroup, true)
   );
 
   const assignees = await project.getAssignablesFirst100Assignees(
@@ -13533,8 +13516,15 @@ async function run() {
         assigneeGroup[assignee].items
       );
   }
-  const assigneeGroupHtml = Render.projectItemsByAssignee(assigneeGroup);
-  core.setOutput("assigneeGroupHtml", assigneeGroupHtml);
+
+  core.setOutput(
+    "assigneeGroupHtml",
+    Render.projectItemsByAssignee(assigneeGroup)
+  );
+  core.setOutput(
+    "assigneeGroupWithSprintGroupHtml",
+    Render.projectItemsByAssignee(assigneeGroup, true)
+  );
 
   project.groupProjectItemsBySprint(
     itemsFieldvaluesWithTrackingSubtasks,
@@ -13548,9 +13538,7 @@ async function run() {
         );
     }
   }
-
-  const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
-  core.setOutput("sprintGroupHtml", sprintGroupHtml);
+  core.setOutput("sprintGroupHtml", Render.projectItemsBySprint(sprintGroup));
 
   core.setOutput("isSuccess", true);
 
