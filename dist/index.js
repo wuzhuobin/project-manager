@@ -595,8 +595,8 @@ function projectItemsByStatus(statusGroup, withSprintGroup = false) {
           <td>${statusGroup[status].sumOfStoryPoint}</td>
           <td>${
             withSprintGroup
-              ? itemsToUnorderList(statusGroup[status].items)
-              : projectItemsBySprint(statusGroup[status].sprintGroup)
+              ? projectItemsBySprint(statusGroup[status].sprintGroup)
+              : itemsToUnorderList(statusGroup[status].items)
           }</td>
       </tr>`;
   }
@@ -655,8 +655,8 @@ function projectItemsByAssignee(assigneeGroup, withSprintGroup = false) {
           <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
           <td>${
             withSprintGroup
-              ? itemsToUnorderList(assigneeGroup[assignee].items)
-              : projectItemsBySprint(assigneeGroup[assignee].sprintGroup)
+              ? projectItemsBySprint(assigneeGroup[assignee].sprintGroup)
+              : itemsToUnorderList(assigneeGroup[assignee].items)
           }</td>
       </tr>`;
   }
@@ -13510,6 +13510,10 @@ async function run() {
   for (const assignee in assigneeGroup) {
     assigneeGroup[assignee].sprintGroup = JSON.parse(
       JSON.stringify(sprintGroup)
+    );
+    project.groupProjectItemsBySprint(
+      assigneeGroup[assignee].items,
+      assigneeGroup[assignee].sprintGroup
     );
     assigneeGroup[assignee].sumOfStoryPoint =
       project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
