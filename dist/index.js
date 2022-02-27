@@ -530,7 +530,14 @@ module.exports = Project;
 /***/ ((module) => {
 
 function itemToLink(item) {
-  return `<a href="${item.content.url}">#${item.content.number}</a>`;
+  let subtasks = "";
+  if (
+    item.content.trackingSubtasks &&
+    item.content.trackingSubtasks.length > 0
+  ) {
+    subtasks = itemsToUnorderList(item.content.trackingSubtasks);
+  }
+  return `<a href="${item.content.url}">#${item.content.number}</a>${subtasks}`;
 }
 
 function itemsToUnorderList(items) {
@@ -609,7 +616,7 @@ function projectItemsByStatus(statusGroup, withSprintGroup = false) {
   );
 }
 
-function projectItemsByStatusWithSprintGroup(statusGroup) {
+function projectItemsByStatusWithSprintGroupLegacy(statusGroup) {
   let body = "";
   let statusGroupHeader = "";
   for (const status in statusGroup) {
@@ -671,7 +678,7 @@ function projectItemsByAssignee(assigneeGroup, withSprintGroup = false) {
 const Render = {
   projectItemsBySprint,
   projectItemsByStatus,
-  projectItemsByStatusWithSprintGroup,
+  projectItemsByStatusWithSprintGroupLegacy,
   projectItemsByAssignee,
 };
 module.exports = Render;
@@ -13519,6 +13526,14 @@ async function run() {
       project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
         assigneeGroup[assignee].items
       );
+    for (const group in assigneeGroup[assignee].sprintGroup) {
+      for (const sprint in assigneeGroup[assignee].sprintGroup[group]) {
+        assigneeGroup[assignee].sprintGroup[group][sprint].sumOfStoryPoint =
+          project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+            assigneeGroup[assignee].sprintGroup[group][sprint].items
+          );
+      }
+    }
   }
 
   core.setOutput(
