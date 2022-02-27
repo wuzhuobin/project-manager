@@ -601,7 +601,7 @@ function projectItemsByStatus(statusGroup) {
     </table>`;
   return rendering;
 }
-function projectItemsByStatusWithSprintGroup(statusGroup, sprintGroup) {
+function projectItemsByStatusWithSprintGroupLegacy(statusGroup, sprintGroup) {
   let content = "";
   for (const status in statusGroup) {
     let sprintGroupHtml = "";
@@ -640,6 +640,36 @@ function projectItemsByStatusWithSprintGroup(statusGroup, sprintGroup) {
     </table>`;
   return rendering;
 }
+function projectItemsByStatusWithSprintGroup(statusGroup) {
+  let content = "";
+  for (const status in statusGroup) {
+    const sprintGroupHtml = projectItemsBySprint(
+      statusGroup[status].sprintGroup
+    );
+    content += `<tr>
+          <td>${statusGroup[status].name}</td>
+          <td>${sprintGroupHtml}</td>
+          <td>${statusGroup[status].items.length}</td>
+          <td>${statusGroup[status].sumOfStoryPoint}</td>
+          <td>${statusGroup[status].items
+            .map((item) =>
+              itemUrlAndNumberToLink(item.content.url, item.content.number)
+            )
+            .join("<br/>")}</td>
+      </tr>`;
+  }
+  let rendering = `<table>
+        <tbody>
+            <tr>
+                <th>Status</th>
+                <th>Sprint</th>
+                ${FIX_HEADER}
+            </tr>
+            ${content}
+        </tbody>
+    </table>`;
+  return rendering;
+}
 function projectItemsByAssignee(assigneeGroup) {
   let content = "";
   for (const assignee in assigneeGroup) {
@@ -669,6 +699,7 @@ function projectItemsByAssignee(assigneeGroup) {
 const Render = {
   projectItemsBySprint,
   projectItemsByStatus,
+  projectItemsByStatusWithSprintGroupLegacy,
   projectItemsByStatusWithSprintGroup,
   projectItemsByAssignee,
 };
