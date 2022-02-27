@@ -13424,6 +13424,12 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
   const projectId = core.getInput("projectId");
   core.notice("projectId: " + projectId);
+  const storyPoint = core.getInput("storyPoint");
+  core.notice("storyPoint: " + storyPoint);
+  const status = core.getInput("status");
+  core.notice("status: " + status);
+  const sprint = core.getInput("sprint");
+  core.notice("sprint: " + sprint);
   const token = core.getInput("token");
 
   const project = new Project(projectId, token);
@@ -13433,6 +13439,9 @@ async function run() {
     project.setUser(user);
   }
   project.setProjectNumber(projectNumber);
+  project.setStoryPoint(storyPoint);
+  project.setStatus(status);
+  project.setSprint(sprint);
   if (!projectId) {
     project.setProjectId(await project.getProjectId());
     core.notice("projectId: " + project.projectId);

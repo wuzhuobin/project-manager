@@ -10,11 +10,26 @@ inputs:
   projectNumber:
     description: "The number of the project"
     required: false
+  projectId:
+    description: "The id of the project"
+    required: false
   token:
     description: |-
       'Token used to authenticate with GitHub API. Default is built-in token but a personal access token may be used for organization or user projects.'
     required: false
     default: ${{github.token}}
+  storyPoint:
+    description: "The name story point"
+    required: false
+    default: "Story Point"
+  status:
+    description: "The name of status"
+    required: false
+    default: "Status"
+  sprint:
+    description: "The name of sprint"
+    required: false
+    default: "Sprint"
 outputs:
   isSuccess:
     description: "Is success?"

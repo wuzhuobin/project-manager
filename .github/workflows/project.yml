@@ -17,6 +17,9 @@ jobs:
         with:
           user: wuzhuobin
           projectNumber: 1
+          storyPoint: "Story Point"
+          status: "Status"
+          sprint: "Sprint"
           token: ${{secrets.TEST}}
 
       - name: Now
