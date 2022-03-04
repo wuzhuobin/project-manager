@@ -649,12 +649,16 @@ function projectItemsByStatusWithSprintGroupLegacy(statusGroup) {
   );
 }
 
-function projectItemsByAssignee(assigneeGroup, withSprintGroup = false) {
+function projectItemsByAssignee(
+  assigneeGroup,
+  withSprintGroup = false,
+  withAt = false
+) {
   let body = "";
   for (const assignee in assigneeGroup) {
     const name = assigneeGroup[assignee].name;
     body += `<tr>
-          <td>@${assignee} ${name && `(${name})`}</td>
+          <td>${withAt ? "@" : ""}${assignee} ${name && `(${name})`}</td>
           <td>${assigneeGroup[assignee].items.length}</td>
           <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
           <td>${
@@ -13428,6 +13432,8 @@ async function run() {
   const sprint = core.getInput("sprint");
   core.notice("sprint: " + sprint);
   const token = core.getInput("token");
+  const assigneeWithAt = core.getBooleanInput("assigneeWithAt");
+  core.notice("assigneeWithAt");
 
   const project = new Project(projectId, token);
   if (organization) {
@@ -13544,11 +13550,11 @@ async function run() {
 
   core.setOutput(
     "assigneeGroupHtml",
-    Render.projectItemsByAssignee(assigneeGroup)
+    Render.projectItemsByAssignee(assigneeGroup, false, assigneeWithAt)
   );
   core.setOutput(
     "assigneeGroupWithSprintGroupHtml",
-    Render.projectItemsByAssignee(assigneeGroup, true)
+    Render.projectItemsByAssignee(assigneeGroup, true, assigneeWithAt)
   );
 
   project.groupProjectItemsBySprint(

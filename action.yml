@@ -30,6 +30,10 @@ inputs:
     description: "The name of sprint"
     required: false
     default: "Sprint"
+  assigneeWithAt:
+    description: "Whether to preprend a @ to a assignee for email notification"
+    required: false
+    default: false
 outputs:
   isSuccess:
     description: "Is success?"

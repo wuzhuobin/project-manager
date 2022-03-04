@@ -20,6 +20,7 @@ jobs:
           storyPoint: "Story Point"
           status: "Status"
           sprint: "Sprint"
+          assigneeWithAt: false
           token: ${{secrets.TEST}}
 
       - name: Now
@@ -29,7 +30,7 @@ jobs:
         uses: imjohnbo/issue-bot@v3
         with:
           assignees: "wuzhuobin"
-          labels: "test"
+          labels: "test" # required
           title: test
           body: |-
             :wave: Hi, {{#each assignees}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}!
