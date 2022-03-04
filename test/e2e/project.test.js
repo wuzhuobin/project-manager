@@ -151,14 +151,14 @@ describe("e2e", () => {
           }
         });
 
-        test("getAssignableFirst100Assignees", async () => {
+        test("getAssignablesFirst100Assignees", async () => {
           const ids = [
             "I_kwDOGPV02s4-eq_M",
             "I_kwDOGPV02s49lDf-",
             "I_kwDOGPV02s4-nM2-",
             "I_kwDOGPV02s4-lfyG",
           ];
-          const assigness = await project.getAssignableFirst100Assignees(ids);
+          const assigness = await project.getAssignablesFirst100Assignees(ids);
           expect(assigness).toEqual([
             [],
             [
@@ -411,9 +411,9 @@ describe("e2e", () => {
           ]);
         });
 
-        test("getAssignableFirst100Assignees", async () => {
+        test("getAssignablesFirst100Assignees", async () => {
           const assignableIds = ["I_kwDOGubbrc5DDGUb", "I_kwDOGubbrc5DDGWs"];
-          const assigness = await project.getAssignableFirst100Assignees(
+          const assigness = await project.getAssignablesFirst100Assignees(
             assignableIds
           );
           expect(assigness).toEqual([
@@ -424,6 +424,20 @@ describe("e2e", () => {
               },
             ],
             [],
+          ]);
+        });
+
+        test("getCommnetsBody", async () => {
+          const commentIds = [
+            "I_kwDOGubbrc5DVETY",
+            "I_kwDOGubbrc5DVEpH",
+            "I_kwDOGubbrc5DVFzB",
+          ];
+          const bodies = await project.getCommentsBody(commentIds);
+          expect(bodies).toEqual([
+            "Test issue 6\r\n- [ ] #1 \r\n- [ ] #5 ",
+            "Test issue 7\r\n- [x] #4 \r\n- [ ] #5 ",
+            "Test issue 9\r\n\r\n- [x] #22 \r\n- [x] #4 ",
           ]);
         });
 
@@ -443,6 +457,42 @@ describe("e2e", () => {
           const sumOfStoryPoint =
             project.sumOfStoryPointByItemsFieldValues(itemsFieldValues);
           expect(sumOfStoryPoint).toBe(47);
+        });
+
+        test("sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks", async () => {
+          const items = await (
+            await project.getProjectItems()
+          ).filter((id, index) => index < 100);
+          const itemIds = items.map((item) => item.id);
+          const fieldValuesArray =
+            await project.getProjectItemFirst100FieldValuesOfItemsByIds(
+              itemIds
+            );
+          const itemsFieldValues = items.map((item, index) => {
+            return {
+              ...item,
+              fieldValues: fieldValuesArray[index],
+            };
+          });
+          const commentIds = items.map((item) => item.content.id);
+          const bodies = await project.getCommentsBody(commentIds);
+          const numbers = bodies.map((body) =>
+            project.extractNumbersOfTrackingSubtasksFromBody(body)
+          );
+          const itemsFieldvaluesWithNumbersOfTrackingSubtasks =
+            project.makeItemsWithNumbersOfTrackingSubtasks(
+              itemsFieldValues,
+              numbers
+            );
+          const itemsFieldvaluesWithTrackingSubtasks =
+            project.groupProjectItemsByTrackingSubtasks(
+              itemsFieldvaluesWithNumbersOfTrackingSubtasks
+            );
+          const sumOfStoryPoint =
+            project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+              itemsFieldvaluesWithTrackingSubtasks
+            );
+          expect(sumOfStoryPoint).toBe(53);
         });
 
         test("groupProjectItemsByStatus", async () => {

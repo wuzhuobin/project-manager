@@ -217,9 +217,16 @@ class Project {
     return group;
   }
 
-  static makeItemsWithAssignees(items, assignees) {
+  makeItemsWithAssignees(items, assignees) {
     return items.map((item, index) => {
       item.content.assignees = assignees[index];
+      return item;
+    });
+  }
+
+  makeItemsWithNumbersOfTrackingSubtasks(items, numbersOfSubtasks) {
+    return items.map((item, index) => {
+      item.content.numbersOfTrackingSubtasks = numbersOfSubtasks[index];
       return item;
     });
   }
@@ -344,9 +351,9 @@ class Project {
     });
   }
 
-  async getAssignableFirst100Assignees(ids) {
-    const assignableFirst100Assignees = `
-      query assignableFirst100Assignees($ids: [ID!]! $first: Int!) {
+  async getAssignablesFirst100Assignees(ids) {
+    const assignablesFirst100Assignees = `
+      query assignablesFirst100Assignees($ids: [ID!]! $first: Int!) {
         nodes(ids: $ids) {
           ... on Assignable {
             assignees(first: $first) {
@@ -362,7 +369,7 @@ class Project {
     let assignees = [];
     for (let i = 0; i < ids.length; i += 100) {
       const subIds = ids.slice(i, i + 100);
-      const data = await this._execute(assignableFirst100Assignees, {
+      const data = await this._execute(assignablesFirst100Assignees, {
         ids: subIds,
         first: 100,
       });
@@ -372,6 +379,28 @@ class Project {
       );
     }
     return assignees;
+  }
+
+  async getCommentsBody(ids) {
+    const commentsBody = `
+      query commentsBody($ids: [ID!]!) {
+        nodes(ids: $ids) {
+          ... on Comment {
+            body
+          }
+        }
+      }
+    `;
+    let bodies = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const subIds = ids.slice(i, i + 100);
+      const data = await this._execute(commentsBody, {
+        ids: subIds,
+      });
+
+      bodies = bodies.concat(data.nodes.map((node) => node.body));
+    }
+    return bodies;
   }
 
   groupProjectItemsByStatus(itemsFieldValues, statusGroup) {
@@ -393,7 +422,7 @@ class Project {
       );
       if (sprintField) {
         if (sprintGroup.iterations[sprintField.value]) {
-          sprintGroup.iterations[sprintField.value].items.push(item.id);
+          sprintGroup.iterations[sprintField.value].items.push(item);
         } else if (sprintGroup.completedIterations[sprintField.value]) {
           sprintGroup.completedIterations[sprintField.value].items.push(item);
         }
@@ -423,6 +452,27 @@ class Project {
     return group;
   }
 
+  groupProjectItemsByTrackingSubtasks(itemsWithNumbersOfTrackingSubtasks) {
+    const subtasksSet = new Set();
+    for (let item of itemsWithNumbersOfTrackingSubtasks) {
+      item.content.trackingSubtasks = [];
+      for (let number of item.content.numbersOfTrackingSubtasks) {
+        subtasksSet.add(number);
+        const foundSubTasks = itemsWithNumbersOfTrackingSubtasks.find(
+          (item) => item.content.number === number
+        );
+        if (foundSubTasks) {
+          item.content.trackingSubtasks.push(foundSubTasks);
+        }
+      }
+    }
+    const itemsWithNumbersOfTrackingSubtasksFitered =
+      itemsWithNumbersOfTrackingSubtasks.filter(
+        (item) => !subtasksSet.has(item.content.number)
+      );
+    return itemsWithNumbersOfTrackingSubtasksFitered;
+  }
+
   sumOfStoryPointByItemsFieldValues(itemsFieldValues) {
     let sumOfStoryPoint = 0;
     for (let item of itemsFieldValues) {
@@ -436,57 +486,35 @@ class Project {
     return sumOfStoryPoint;
   }
 
-  async getProjectItemsLegacy() {
-    const projectItems = (
-      noAfter = true
-    ) => `query projectItems($login: String! $number: Int! $first: Int! ${
-      noAfter ? "" : "$after: String!"
-    }){
-        ${this.organization ? "organization" : "user"}(login: $login){
-          projectNext(number: $number) {
-            items(first: $first ${noAfter ? "" : "after: $after"}) {
-              edges {
-                cursor
-              }
-              nodes {
-                id
-                title
-                content {
-                  __typename
-                  ... on Issue {
-                    id
-                  }
-                  ... on PullRequest {
-                    id
-                  }
-                }
-              }
-            }
-          }
-        }
-      }`;
-
-    const items = [];
-    let afterCursor = null;
-    const count = await this.getProjectItemCount();
-    for (let i = 0; i < count; i += 100) {
-      let data = null;
-      if (afterCursor === null) {
-        data = await this._execute(projectItems(), {
-          first: 100,
-        });
+  sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+    itemsFieldValuesGroupedByTrackingSubtasks
+  ) {
+    let sumOfStoryPoint = 0;
+    for (let item of itemsFieldValuesGroupedByTrackingSubtasks) {
+      if (
+        item.content.trackingSubtasks &&
+        item.content.trackingSubtasks.length > 0
+      ) {
+        sumOfStoryPoint +=
+          this.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+            item.content.trackingSubtasks
+          );
       } else {
-        data = await this._execute(projectItems(false), {
-          first: 100,
-          after: afterCursor,
-        });
+        sumOfStoryPoint += this.sumOfStoryPointByItemsFieldValues([item]);
       }
-      const edges = data.organization.projectNext.items.edges;
-      afterCursor = edges[edges.length - 1].cursor;
-      items.push(...data.organization.projectNext.items.nodes);
     }
+    return sumOfStoryPoint;
+  }
 
-    return items;
+  extractNumbersOfTrackingSubtasksFromBody(body) {
+    const issueRegex = /\[[ xX]\] #\d+/g;
+    const matches = body.match(issueRegex);
+    if (!matches || matches.length <= 0) {
+      return [];
+    }
+    const numbers = matches.map((match) => parseInt(match.match(/\d+/)[0]));
+
+    return numbers;
   }
 }
 
@@ -498,17 +526,44 @@ module.exports = Project;
 /***/ 9089:
 /***/ ((module) => {
 
-const Render = {
-  projectItemsBySprint: function (sprintGroup) {
-    function group(group, groupName) {
-      const length = Object.keys(group).length;
-      let groupHtml;
-      if (length === 0) {
-        groupHtml = `<th rowspan="1">${groupName}</th><td></td><td></td><td></td><td></td>`;
-      } else {
-        groupHtml = Object.entries(group)
-          .map(([, sprint], index) => {
-            return `<tr>
+function itemToLink(item) {
+  let subtasks = "";
+  if (
+    item.content.trackingSubtasks &&
+    item.content.trackingSubtasks.length > 0
+  ) {
+    subtasks = itemsToUnorderList(item.content.trackingSubtasks);
+  }
+  return `<a href="${item.content.url}">#${item.content.number}</a>${subtasks}`;
+}
+
+function itemsToUnorderList(items) {
+  return `<ul>
+    ${items.map((item) => `<li>${itemToLink(item)}</li>`).join("\n")}
+  </ul>`;
+}
+
+const FIX_HEADER =
+  "<th>Total Number</th><th>Total Story Point</th><th>Items</th>";
+function renderingTable(header, body) {
+  return `<table>
+        <tbody>
+            ${header}
+            ${body}
+        </tbody>
+    </table>`;
+}
+
+function projectItemsBySprint(sprintGroup) {
+  function group(group, groupName) {
+    const length = Object.keys(group).length;
+    let groupHtml;
+    if (length === 0) {
+      groupHtml = `<th rowspan="1">${groupName}</th><td></td><td></td><td></td><td></td>`;
+    } else {
+      groupHtml = Object.entries(group)
+        .map(([, sprint], index) => {
+          return `<tr>
             ${
               index === 0
                 ? `<th rowspan="${length}">${groupName}</th>`
@@ -517,90 +572,115 @@ const Render = {
             <td>${sprint.title}</td>
             <td>${sprint.items.length}</td>
             <td>${sprint.sumOfStoryPoint}</td>
-            <td>${sprint.items
-              .map(
-                (item) =>
-                  `<a href="${item.content.url}">#${item.content.number}</a>`
-              )
-              .join("<br/>")}</td>
+            <td>${itemsToUnorderList(sprint.items)}</td>
         </tr>`;
-          })
-          .join("\n");
-      }
-      return groupHtml;
+        })
+        .join("\n");
     }
+    return groupHtml;
+  }
 
-    let rendering = `<table>
-        <tbody>
-            <tr>
-                <th colspan="2">Sprint</th>
-                <th>Total Number</th>
-                <th>Total Story Point</th>
-                <th>Items</th>
-            </tr>
-            ${group(sprintGroup.iterations, "Iterating")}
-            ${group(sprintGroup.completedIterations, "Completed")}
-        </tbody>
-    </table>`;
-    return rendering;
-  },
-  projectItemsByStatus: function (statusGroup) {
-    let content = "";
-    for (const status in statusGroup) {
-      content += `<tr>
+  return renderingTable(
+    `<tr>
+      <th colspan="2">Sprint</th>
+      ${FIX_HEADER}
+    </tr>`,
+    `${group(sprintGroup.iterations, "Iterating")}
+     ${group(sprintGroup.completedIterations, "Completed")}`
+  );
+}
+
+function projectItemsByStatus(statusGroup, withSprintGroup = false) {
+  let body = "";
+  for (const status in statusGroup) {
+    body += `<tr>
           <td>${statusGroup[status].name}</td>
           <td>${statusGroup[status].items.length}</td>
           <td>${statusGroup[status].sumOfStoryPoint}</td>
-          <td>${statusGroup[status].items
-            .map(
-              (item) =>
-                `<a href="${item.content.url}">#${item.content.number}</a>`
-            )
-            .join("<br/>")}</td>
+          <td>${
+            withSprintGroup
+              ? projectItemsBySprint(statusGroup[status].sprintGroup)
+              : itemsToUnorderList(statusGroup[status].items)
+          }</td>
       </tr>`;
+  }
+  return renderingTable(
+    `<tr>
+        <th>Status</th>
+        ${FIX_HEADER}
+      </tr>`,
+    `${body}`
+  );
+}
+
+function projectItemsByStatusWithSprintGroupLegacy(statusGroup) {
+  let body = "";
+  let statusGroupHeader = "";
+  for (const status in statusGroup) {
+    const sprintGroup = statusGroup[status].sprintGroup;
+    if (statusGroupHeader === "") {
+      for (const group in sprintGroup) {
+        for (const sprint in sprintGroup[group]) {
+          statusGroupHeader += `<th>${sprintGroup[group][sprint].title}</th>`;
+        }
+      }
     }
-    let rendering = `<table>
-        <tbody>
-            <tr>
-                <th>Status</th>
-                <th>Total Number</th>
-                <th>Total Story Point</th>
-                <th>Items</th>
-            </tr>
-            ${content}
-        </tbody>
-    </table>`;
-    return rendering;
-  },
-  projectItemsByAssignee: function (assigneeGroup) {
-    let content = "";
-    for (const assignee in assigneeGroup) {
-      const name = assigneeGroup[assignee].name;
-      content += `<tr>
-          <td>@${assignee} ${name && `(${name})`}</td>
+    let sprintGroupHtml = "";
+    for (const group in sprintGroup) {
+      for (const sprint in sprintGroup[group]) {
+        sprintGroupHtml += `<td>${sprintGroup[group][sprint].sumOfStoryPoint}</td>`;
+      }
+    }
+    body += `<tr>
+          <td>${statusGroup[status].name}</td>
+          ${sprintGroupHtml}
+          <td>${statusGroup[status].items.length}</td>
+          <td>${statusGroup[status].sumOfStoryPoint}</td>
+          <td>${itemsToUnorderList(statusGroup[status].items)}</td>
+      </tr>`;
+  }
+  return renderingTable(
+    `<tr>
+        <th>Status</th>
+        ${statusGroupHeader}
+        ${FIX_HEADER}
+    </tr>`,
+    `${body}`
+  );
+}
+
+function projectItemsByAssignee(
+  assigneeGroup,
+  withSprintGroup = false,
+  withAt = false
+) {
+  let body = "";
+  for (const assignee in assigneeGroup) {
+    const name = assigneeGroup[assignee].name;
+    body += `<tr>
+          <td>${withAt ? "@" : ""}${assignee} ${name && `(${name})`}</td>
           <td>${assigneeGroup[assignee].items.length}</td>
           <td>${assigneeGroup[assignee].sumOfStoryPoint}</td>
-          <td>${assigneeGroup[assignee].items
-            .map(
-              (item) =>
-                `<a href="${item.content.url}">#${item.content.number}</a>`
-            )
-            .join("<br/>")}</td>
+          <td>${
+            withSprintGroup
+              ? projectItemsBySprint(assigneeGroup[assignee].sprintGroup)
+              : itemsToUnorderList(assigneeGroup[assignee].items)
+          }</td>
       </tr>`;
-    }
-    let rendering = `<table>
-        <tbody>
-            <tr>
-                <th>Assignee</th>
-                <th>Total Number</th>
-                <th>Total Story Point</th>
-                <th>Items</th>
-            </tr>
-            ${content}
-        </tbody>
-    <table>`;
-    return rendering;
-  },
+  }
+  return renderingTable(
+    `<tr>
+        <th>Assignee</th>
+        ${FIX_HEADER}
+    </tr>`,
+    `${body}`
+  );
+}
+const Render = {
+  projectItemsBySprint,
+  projectItemsByStatus,
+  projectItemsByStatusWithSprintGroupLegacy,
+  projectItemsByAssignee,
 };
 module.exports = Render;
 
@@ -13345,7 +13425,15 @@ async function run() {
   core.notice("projectNumber: " + projectNumber);
   const projectId = core.getInput("projectId");
   core.notice("projectId: " + projectId);
+  const storyPoint = core.getInput("storyPoint");
+  core.notice("storyPoint: " + storyPoint);
+  const status = core.getInput("status");
+  core.notice("status: " + status);
+  const sprint = core.getInput("sprint");
+  core.notice("sprint: " + sprint);
   const token = core.getInput("token");
+  const assigneeWithAt = core.getBooleanInput("assigneeWithAt");
+  core.notice("assigneeWithAt");
 
   const project = new Project(projectId, token);
   if (organization) {
@@ -13354,6 +13442,9 @@ async function run() {
     project.setUser(user);
   }
   project.setProjectNumber(projectNumber);
+  project.setStoryPoint(storyPoint);
+  project.setStatus(status);
+  project.setSprint(sprint);
   if (!projectId) {
     project.setProjectId(await project.getProjectId());
     core.notice("projectId: " + project.projectId);
@@ -13383,43 +13474,102 @@ async function run() {
     }
   );
 
-  const statusGroup = project.makeStatusGroup(fields);
-  project.groupProjectItemsByStatus(itemsFieldValues, statusGroup);
-  for (const status in statusGroup) {
-    statusGroup[status].sumOfStoryPoint =
-      project.sumOfStoryPointByItemsFieldValues(statusGroup[status].items);
-  }
-  const statusGroupHtml = Render.projectItemsByStatus(statusGroup);
-  core.setOutput("statusGroupHtml", statusGroupHtml);
+  const commentIds = items.map((item) => item.content.id);
+  const bodies = await project.getCommentsBody(commentIds);
+  const numbers = bodies.map((body) =>
+    project.extractNumbersOfTrackingSubtasksFromBody(body)
+  );
+  const itemsFieldvaluesWithNumbersOfTrackingSubtasks =
+    project.makeItemsWithNumbersOfTrackingSubtasks(itemsFieldValues, numbers);
+  const itemsFieldvaluesWithTrackingSubtasks =
+    project.groupProjectItemsByTrackingSubtasks(
+      itemsFieldvaluesWithNumbersOfTrackingSubtasks
+    );
 
   const sprintGroup = project.makeSprintGroup(fields);
-  project.groupProjectItemsBySprint(itemsFieldValues, sprintGroup);
-  for (const group in sprintGroup) {
-    for (const sprint in sprintGroup[group]) {
-      sprintGroup[group][sprint].sumOfStoryPoint =
-        project.sumOfStoryPointByItemsFieldValues(
-          sprintGroup[group][sprint].items
-        );
+
+  const statusGroup = project.makeStatusGroup(fields);
+  project.groupProjectItemsByStatus(
+    itemsFieldvaluesWithTrackingSubtasks,
+    statusGroup
+  );
+  for (const status in statusGroup) {
+    statusGroup[status].sprintGroup = JSON.parse(JSON.stringify(sprintGroup));
+    project.groupProjectItemsBySprint(
+      statusGroup[status].items,
+      statusGroup[status].sprintGroup
+    );
+    for (const group in statusGroup[status].sprintGroup) {
+      for (const sprint in statusGroup[status].sprintGroup[group]) {
+        statusGroup[status].sprintGroup[group][sprint].sumOfStoryPoint =
+          project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+            statusGroup[status].sprintGroup[group][sprint].items
+          );
+      }
     }
+    statusGroup[status].sumOfStoryPoint =
+      project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+        statusGroup[status].items
+      );
   }
+  core.setOutput("statusGroupHtml", Render.projectItemsByStatus(statusGroup));
+  core.setOutput(
+    "statusGroupWithSprintGroupHtml",
+    Render.projectItemsByStatus(statusGroup, true)
+  );
 
-  const sprintGroupHtml = Render.projectItemsBySprint(sprintGroup);
-  core.setOutput("sprintGroupHtml", sprintGroupHtml);
-
-  const assignees = await project.getAssignableFirst100Assignees(
+  const assignees = await project.getAssignablesFirst100Assignees(
     items.map((item) => item.content.id)
   );
-  const itemsWithAssignees = Project.makeItemsWithAssignees(
-    itemsFieldValues,
+  const itemsWithAssignees = project.makeItemsWithAssignees(
+    itemsFieldvaluesWithTrackingSubtasks,
     assignees
   );
   const assigneeGroup = project.groupProjectItemsByAssignee(itemsWithAssignees);
   for (const assignee in assigneeGroup) {
+    assigneeGroup[assignee].sprintGroup = JSON.parse(
+      JSON.stringify(sprintGroup)
+    );
+    project.groupProjectItemsBySprint(
+      assigneeGroup[assignee].items,
+      assigneeGroup[assignee].sprintGroup
+    );
     assigneeGroup[assignee].sumOfStoryPoint =
-      project.sumOfStoryPointByItemsFieldValues(assigneeGroup[assignee].items);
+      project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+        assigneeGroup[assignee].items
+      );
+    for (const group in assigneeGroup[assignee].sprintGroup) {
+      for (const sprint in assigneeGroup[assignee].sprintGroup[group]) {
+        assigneeGroup[assignee].sprintGroup[group][sprint].sumOfStoryPoint =
+          project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+            assigneeGroup[assignee].sprintGroup[group][sprint].items
+          );
+      }
+    }
   }
-  const assigneeGroupHtml = Render.projectItemsByAssignee(assigneeGroup);
-  core.setOutput("assigneeGroupHtml", assigneeGroupHtml);
+
+  core.setOutput(
+    "assigneeGroupHtml",
+    Render.projectItemsByAssignee(assigneeGroup, false, assigneeWithAt)
+  );
+  core.setOutput(
+    "assigneeGroupWithSprintGroupHtml",
+    Render.projectItemsByAssignee(assigneeGroup, true, assigneeWithAt)
+  );
+
+  project.groupProjectItemsBySprint(
+    itemsFieldvaluesWithTrackingSubtasks,
+    sprintGroup
+  );
+  for (const group in sprintGroup) {
+    for (const sprint in sprintGroup[group]) {
+      sprintGroup[group][sprint].sumOfStoryPoint =
+        project.sumOfStoryPointByItemsFieldValuesWithTrackingSubtasks(
+          sprintGroup[group][sprint].items
+        );
+    }
+  }
+  core.setOutput("sprintGroupHtml", Render.projectItemsBySprint(sprintGroup));
 
   core.setOutput("isSuccess", true);
 

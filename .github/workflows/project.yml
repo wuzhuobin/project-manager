@@ -17,17 +17,40 @@ jobs:
         with:
           user: wuzhuobin
           projectNumber: 1
+          storyPoint: "Story Point"
+          status: "Status"
+          sprint: "Sprint"
+          assigneeWithAt: false
           token: ${{secrets.TEST}}
 
-      - name: print
-        run: echo "The last action result is ${{steps.projectTest.outputs.isSuccess}}." && echo "${{steps.projectTest.outputs.statusGroupHtml}}"
+      - name: Now
+        run: echo "NOW=$(date '+%Y-%m-%d %H:%M:%S') (UTC)" >> ${{github.env}}
 
       - name: test
-        if: ${{false}}
         uses: imjohnbo/issue-bot@v3
         with:
+          assignees: "wuzhuobin"
+          labels: "test" # required
           title: test
           body: |-
-            ${{steps.projectTest.outputs.statusGroupHtml}}
+            :wave: Hi, {{#each assignees}}@{{this}}{{#unless @last}}, {{/unless}}{{/each}}!
+            ## test for ${{ env.NOW }}
+
+            ## sprintGroupHtml
             ${{steps.projectTest.outputs.sprintGroupHtml}}
+
+            ## statusGroupHtml
+            ${{steps.projectTest.outputs.statusGroupHtml}}
+
+            ## statusGroupWithSprintGroupHtml
+            ${{steps.projectTest.outputs.statusGroupWithSprintGroupHtml}}
+
+            ## assigneeGroupHtml
             ${{steps.projectTest.outputs.assigneeGroupHtml}}
+
+            ## assigneeGroupWithSprintGroupHtml
+            ${{steps.projectTest.outputs.assigneeGroupWithSprintGroupHtml}}
+
+          pinned: true
+          close-previous: true
+          linked-comments: true
